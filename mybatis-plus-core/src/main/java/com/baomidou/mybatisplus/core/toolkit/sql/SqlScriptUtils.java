@@ -30,6 +30,13 @@ import org.apache.ibatis.type.TypeHandler;
  */
 @SuppressWarnings("serial")
 public abstract class SqlScriptUtils implements Constants {
+    // 位于: com.baomidou.mybatisplus.core.toolkit.sql = core项目下 toolkit.sql 下
+
+    // 命名:
+    // sqlScriptUtils = SQL脚本工具类
+
+    // 作用:
+    // 对于MP自动注入的MP方法而言,需要生成对应的sql脚本[可以认为mapper.xml中某个insert标签的内容],部分脚本片段就可通过当前方法生成哦
 
     /**
      * <p>
@@ -40,6 +47,11 @@ public abstract class SqlScriptUtils implements Constants {
      * @return if 脚本
      */
     public static String convertIf(final String sqlScript, final String ifTest, boolean newLine) {
+        // 获取 带 if 标签的脚本
+        // <if test="ifTest">
+        //      sqlScript
+        //  </if>
+
         String newSqlScript = sqlScript;
         if (newLine) {
             newSqlScript = NEWLINE + newSqlScript + NEWLINE;
@@ -61,6 +73,15 @@ public abstract class SqlScriptUtils implements Constants {
      */
     public static String convertTrim(final String sqlScript, final String prefix, final String suffix,
                                      final String prefixOverrides, final String suffixOverrides) {
+        // 获取 带 trim 标签的脚本
+        //Params:
+        //      sqlScript – sql 脚本片段
+        //      prefix – 以...开头
+        //      suffix – 以...结尾
+        //      prefixOverrides – 干掉最前一个...
+        //      suffixOverrides – 干掉最后一个...
+        // <trim prefix="(" suffix=")" prefixOverride="xx" suffixOverrides="yy"> sqlScript </trim>
+
         StringBuilder sb = new StringBuilder("<trim");
         if (StringUtils.isNotBlank(prefix)) {
             sb.append(" prefix=\"").append(prefix).append(QUOTE);
@@ -87,6 +108,10 @@ public abstract class SqlScriptUtils implements Constants {
      * @return choose 脚本
      */
     public static String convertChoose(final String whenTest, final String whenSqlScript, final String otherwise) {
+        // <choose>
+        //      <when test="whenTest"> whenSqlScript </when>
+        //      <otherwise> otherwise </otherwise>
+        // </choose>
         return "<choose>" + NEWLINE
             + "<when test=\"" + whenTest + QUOTE + RIGHT_CHEV + NEWLINE
             + whenSqlScript + NEWLINE + "</when>" + NEWLINE
@@ -108,6 +133,10 @@ public abstract class SqlScriptUtils implements Constants {
      */
     public static String convertForeach(final String sqlScript, final String collection, final String index,
                                         final String item, final String separator) {
+        // 结果:
+        // <foreach collection="collection" index="index" item="item" separator="separator">
+        //      sqlScript
+        // <foreach>
         StringBuilder sb = new StringBuilder("<foreach");
         if (StringUtils.isNotBlank(collection)) {
             sb.append(" collection=\"").append(collection).append(QUOTE);
@@ -157,6 +186,7 @@ public abstract class SqlScriptUtils implements Constants {
      * @return 脚本
      */
     public static String safeParam(final String param) {
+        // 构建为安全入参: #{param} 后返回
         return safeParam(param, null);
     }
 
@@ -170,10 +200,15 @@ public abstract class SqlScriptUtils implements Constants {
      * @return 脚本
      */
     public static String safeParam(final String param, final String mapping) {
+        // 构建为安全入参: #{param,mapping}
+
+        // HASH_LEFT_BRACE 为 #{
         String target = HASH_LEFT_BRACE + param;
         if (StringUtils.isBlank(mapping)) {
+            // RIGHT_BRACE 为 #}
             return target + RIGHT_BRACE;
         }
+        // mapping 一般都是 javaType=String,jdbcType=VARCHAR 这种
         return target + COMMA + mapping + RIGHT_BRACE;
     }
 
@@ -186,6 +221,8 @@ public abstract class SqlScriptUtils implements Constants {
      * @return 脚本
      */
     public static String unSafeParam(final String param) {
+        // ${param}
+
         return DOLLAR_LEFT_BRACE + param + RIGHT_BRACE;
     }
 

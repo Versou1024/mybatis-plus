@@ -26,6 +26,14 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @since 2018-12-19
  */
 public interface ChainWrapper<T> {
+    // 位于:  com.baomidou.mybatisplus.extension.conditions = extension模块下的conditions条件包下 -> 表名用来封装条件的
+
+    // 作用:
+    // 此接口没特殊意义,只是为了减少实现类的代码量
+
+    // 分为两路:
+    //   ChainQuery
+    //   ChainUpdate
 
     /**
      * 获取 BaseMapper

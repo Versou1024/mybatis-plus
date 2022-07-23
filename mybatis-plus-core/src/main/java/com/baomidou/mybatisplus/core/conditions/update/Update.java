@@ -22,6 +22,12 @@ import java.io.Serializable;
  * @since 2018-12-12
  */
 public interface Update<Children, R> extends Serializable {
+    // 位于: com.baomidou.mybatisplus.core.conditions.update = core模块下的conditions的update
+
+    // 作用:
+    // 由 UpdateWrapper 或者 LambdaUpdateWrapper 实现的接口
+    // update需要表名set的列,以及set进去的列值
+    // 因此: 定义有 set(R column, Object val) \
 
     /**
      * ignore

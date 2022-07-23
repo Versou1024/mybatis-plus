@@ -27,6 +27,8 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.ANNOTATION_TYPE})
 public @interface TableId {
+    // 用在PO类的主键上
+    // 可以直接对应主键的列名/以及主键的生成策略
 
     /**
      * 字段名（该值可无）

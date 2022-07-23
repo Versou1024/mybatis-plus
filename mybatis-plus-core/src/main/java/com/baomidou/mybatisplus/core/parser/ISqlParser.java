@@ -24,6 +24,10 @@ import org.apache.ibatis.reflection.MetaObject;
  * @since 2017-09-01
  */
 public interface ISqlParser {
+    // 位于: core模块的parser解析包下
+
+    // 作用:
+    // 根据实体对象的metaObject以及对应的sql,去解析处SqlInfo
 
     /**
      * 解析 SQL 方法

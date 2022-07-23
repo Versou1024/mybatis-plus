@@ -51,6 +51,7 @@ public interface InnerInterceptor {
      * @return 新的 boundSql
      */
     default boolean willDoQuery(Executor executor, MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) throws SQLException {
+        // 判断是否需要拦截执行 Executor.query(MappedStatement, Object, RowBounds, ResultHandler, CacheKey, BoundSql)
         return true;
     }
 
@@ -67,7 +68,7 @@ public interface InnerInterceptor {
      * @param boundSql      boundSql
      */
     default void beforeQuery(Executor executor, MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) throws SQLException {
-        // do nothing
+        // Executor.query(MappedStatement, Object, RowBounds, ResultHandler, CacheKey, BoundSql) 操作前置处理
     }
 
     /**
@@ -80,6 +81,8 @@ public interface InnerInterceptor {
      * @param parameter parameter
      */
     default boolean willDoUpdate(Executor executor, MappedStatement ms, Object parameter) throws SQLException {
+        // 判断是否执行 Executor.update(MappedStatement, Object)
+        // 如果不执行update操作,则影响行数的值为 -1
         return true;
     }
 
@@ -93,7 +96,8 @@ public interface InnerInterceptor {
      * @param parameter parameter
      */
     default void beforeUpdate(Executor executor, MappedStatement ms, Object parameter) throws SQLException {
-        // do nothing
+        // Executor.update(MappedStatement, Object) 操作前置处理
+        //改改sql啥的
     }
 
     /**
@@ -106,7 +110,7 @@ public interface InnerInterceptor {
      * @param transactionTimeout transactionTimeout
      */
     default void beforePrepare(StatementHandler sh, Connection connection, Integer transactionTimeout) {
-        // do nothing
+        // StatementHandler.prepare(Connection, Integer) 操作前置处理
     }
 
     /**
@@ -117,7 +121,8 @@ public interface InnerInterceptor {
      * @param sh StatementHandler(可能是代理对象)
      */
     default void beforeGetBoundSql(StatementHandler sh) {
-        // do nothing
+        // StatementHandler.getBoundSql() 操作前置处理
+        //只有 BatchExecutor 和 ReuseExecutor 才会调用到这个方法
     }
 
     default void setProperties(Properties properties) {

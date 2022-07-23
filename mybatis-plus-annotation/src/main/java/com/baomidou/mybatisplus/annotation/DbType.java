@@ -27,6 +27,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum DbType {
+    // 命名:
+    // Db Type = 数据库类型
+    // MybatisPlus 支持的数据库类型,主要用于分页方言
 
     /**
      * MYSQL

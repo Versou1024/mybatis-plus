@@ -25,6 +25,22 @@ import java.io.Serializable;
  * @since 2017-05-26
  */
 public interface Join<Children> extends Serializable {
+    // 位于: com.baomidou.mybatisplus.core.conditions.interfaces = core模块下的coditions.interface包
+
+    // 作用: 查询条件 - 常见的拼接作用
+
+    // 定义;
+    // or           拼接 OR
+    // apply        拼接 sql,无视拼接位置
+    // last         无视优化规则直接拼接到 sql 的最后(有sql注入的风险,请谨慎使用),例: last("limit 1")
+    // comment      sql 注释(会拼接在 sql 的最后面)
+    // first        sql 起始句（会拼接在SQL语句的起始处）
+    // exist        拼接 EXISTS ( sql语句 ),!! sql 注入方法 !!,例: exists("select id from table where age = 1")
+    // notExists    拼接 NOT EXISTS ( sql语句 )
+
+    // 泛型:
+    // R 表示列的类型,一般都是String,表示列名
+    // Children 一般都是AbstractWrapper的子类
 
     /**
      * ignore

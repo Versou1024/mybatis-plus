@@ -35,6 +35,8 @@ import java.util.stream.Stream;
  * @author Kazuki Shimizu
  */
 public class SpringBootVFS extends VFS {
+    // 命名:
+    // SpringBoot VFS = 基于SpringBoot的VFS,用来: 提供一种非常简单的API来访问一个应用服务的资源
 
     private final ResourcePatternResolver resourceResolver;
 
@@ -42,6 +44,7 @@ public class SpringBootVFS extends VFS {
         this.resourceResolver = new PathMatchingResourcePatternResolver(getClass().getClassLoader());
     }
 
+    // 如果VFS实现对当前环境有效，则返回 true
     @Override
     public boolean isValid() {
         return true;

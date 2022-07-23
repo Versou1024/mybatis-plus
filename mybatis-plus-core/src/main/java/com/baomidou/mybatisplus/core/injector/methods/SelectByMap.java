@@ -45,7 +45,29 @@ public class SelectByMap extends AbstractMethod {
 
     @Override
     public MappedStatement injectMappedStatement(Class<?> mapperClass, Class<?> modelClass, TableInfo tableInfo) {
+        // 对应: BaseMapper#selectByMap(@Param(Constants.COLUMN_MAP) Map<String, Object> columnMap) -> 形参名为"cm"
+        // 对应: SqlMethod.SELECT_BY_MAP;
+        // 1. sql脚本框架:
+        //<script>
+        //  SELECT %s FROM %s %s
+        //</script>
         SqlMethod sqlMethod = SqlMethod.SELECT_BY_MAP;
+        // 2.
+        // 第1个%s: sqlSelectColumns(tableInfo, false)
+            // idColumn as idProperty,column1 as property1, column2, column3 as property3
+        // 第2个%s: tableInfo.getTableName() -> 表名
+        // 第3个%s: sqlWhereByMap(tableInfo) -> 以逻辑删除为例,并通过传递名为"cm"的map参数做where筛选条件
+            // <where>
+            //  <if test=" cm != null and !cm.isEmpty">
+            //      <foreach collection="cm" index="k" item="v" separator="AND">
+            //          <choose>
+            //              <when test="v == null"> ${k} IS NULL </when>        -> k和v来自于<foreach>标签的collection为"cm"的map时,index="k",item="v"
+            //              <otherwise> ${k} = #{v} </otherwise>
+            //          </choose>
+            //      <foreach>
+            //  </if>
+            // and deleted = 0
+            // <where>
         String sql = String.format(sqlMethod.getSql(), sqlSelectColumns(tableInfo, false),
             tableInfo.getTableName(), sqlWhereByMap(tableInfo));
         SqlSource sqlSource = languageDriver.createSqlSource(configuration, sql, Map.class);

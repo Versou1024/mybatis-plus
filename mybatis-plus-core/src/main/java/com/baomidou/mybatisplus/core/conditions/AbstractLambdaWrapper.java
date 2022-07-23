@@ -37,10 +37,14 @@ import static java.util.stream.Collectors.joining;
  * @since 2017-05-26
  */
 @SuppressWarnings("serial")
-public abstract class AbstractLambdaWrapper<T, Children extends AbstractLambdaWrapper<T, Children>>
-    extends AbstractWrapper<T, SFunction<T, ?>, Children> {
+public abstract class AbstractLambdaWrapper<T, Children extends AbstractLambdaWrapper<T, Children>> extends AbstractWrapper<T, SFunction<T, ?>, Children> {
+    // Lambda 语法使用 Wrapper
+    // note:
+    // ❗️❗️❗️
+    // 泛型T是SFunction<T, ?>
 
     private Map<String, ColumnCache> columnMap = null;
+    // 是否已经初始化 实例化该方法的类
     private boolean initColumnMap = false;
 
     @Override
@@ -60,6 +64,8 @@ public abstract class AbstractLambdaWrapper<T, Children extends AbstractLambdaWr
 
     @Override
     protected String columnToString(SFunction<T, ?> column) {
+        // 重写: columnToString(..)
+        // 不难看出: String columnToString(SFunction<T, ?> column) -> 如何从一个Lambda表达式决定列名
         return columnToString(column, true);
     }
 
@@ -77,19 +83,35 @@ public abstract class AbstractLambdaWrapper<T, Children extends AbstractLambdaWr
      * @throws com.baomidou.mybatisplus.core.exceptions.MybatisPlusException 获取不到列信息时抛出异常
      */
     protected ColumnCache getColumnCache(SFunction<T, ?> column) {
+        // 获取 SerializedLambda 对应的列信息，从 lambda 表达式中推测实体类
+        // 以:
+        // LambdaQueryWrapper<BannerItem> wrapper = new LambdaQueryWrapper<>();
+        // wrapper.eq(BannerItem::getBannerId, id);
+
+        // 1. 确定实现SFunction<T,?>的LambdaMeta -> 能够确定声明的类\实现的方法名字
         LambdaMeta meta = LambdaUtils.extract(column);
+        // 2. 获取Lambda表达式中的方法: 比如上 BannerItem::getBannerId 的 getBannerId
+        // PropertyNamer.methodToProperty(..): 逻辑 -> 如果以"get"或"set"或"is"开头的,就去掉
+        // 因此 PropertyNamer.methodToProperty("getBannerId")等于bannerId
         String fieldName = PropertyNamer.methodToProperty(meta.getImplMethodName());
+        // 3. 获取 实例化该方法的类 -> 一般就是实体类哦
         Class<?> instantiatedClass = meta.getInstantiatedClass();
+        // 4. 获取实体列对应的ColumnMap
         tryInitCache(instantiatedClass);
+        // 5. 根据字段和实体类去查找对应的ColumnCache
+        // 即 BannerItem实体类中bannerId字段对应的ColumnCache
         return getColumnCache(fieldName, instantiatedClass);
     }
 
     private void tryInitCache(Class<?> lambdaClass) {
+        // 1. initColumnMap = false, 表示还没有开始初始化columnMap缓存
         if (!initColumnMap) {
+            // 1.1 获取实体类的Class<T>
             final Class<T> entityClass = getEntityClass();
             if (entityClass != null) {
                 lambdaClass = entityClass;
             }
+            // 1.2 为实体类生成对应的ColumnMap -> 存入到AbstractLambdaWrapper.columnMap字段中
             columnMap = LambdaUtils.getColumnMap(lambdaClass);
             Assert.notNull(columnMap, "can not find lambda cache for this entity [%s]", lambdaClass.getName());
             initColumnMap = true;
@@ -97,6 +119,7 @@ public abstract class AbstractLambdaWrapper<T, Children extends AbstractLambdaWr
     }
 
     private ColumnCache getColumnCache(String fieldName, Class<?> lambdaClass) {
+        // 根据字段和实体类去查找对应的ColumnCache
         ColumnCache columnCache = columnMap.get(LambdaUtils.formatKey(fieldName));
         Assert.notNull(columnCache, "can not find lambda cache for this property [%s] of entity [%s]",
             fieldName, lambdaClass.getName());

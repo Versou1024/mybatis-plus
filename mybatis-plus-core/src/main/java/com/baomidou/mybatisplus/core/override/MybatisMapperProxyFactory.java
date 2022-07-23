@@ -32,11 +32,20 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2018-06-09
  */
 public class MybatisMapperProxyFactory<T> {
+    // 直接位于: core模块的overrider重写包下
+
+    // 主要作用:
+    // 将原始的MapperMethod修改为MP的MybatisMapperProxy.MapperMethodInvoker
+
 
     @Getter
     private final Class<T> mapperInterface;
+    // TODO 下面改动啦
+    // 在 Mybatis 的 MapperProxyFactory 中 methodCache 的类型是:  Map<Method, MapperMethod>
+    // 现在在MybatisMapperProxyFactory的类型时是: Map<Method, MybatisMapperProxy.MapperMethodInvoker>
     @Getter
     private final Map<Method, MybatisMapperProxy.MapperMethodInvoker> methodCache = new ConcurrentHashMap<>();
+    // TODO 上面改动啦
 
     public MybatisMapperProxyFactory(Class<T> mapperInterface) {
         this.mapperInterface = mapperInterface;

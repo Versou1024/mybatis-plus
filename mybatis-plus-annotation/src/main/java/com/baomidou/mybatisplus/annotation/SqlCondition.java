@@ -22,6 +22,9 @@ package com.baomidou.mybatisplus.annotation;
  * @since 2018-01-05
  */
 public class SqlCondition {
+    // SQL 比较条件常量定义类
+    // 用在where筛选时的比较策略
+
     /**
      * 等于
      */

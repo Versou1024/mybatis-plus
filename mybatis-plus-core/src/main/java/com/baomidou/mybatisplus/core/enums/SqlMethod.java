@@ -22,6 +22,20 @@ package com.baomidou.mybatisplus.core.enums;
  * @since 2016-01-23
  */
 public enum SqlMethod {
+    // 位于: com.baomidou.mybatisplus.core.enums = core模块的enums下
+
+    // 命名:
+    // Sql Method = sql方法
+
+    // 参数:
+    // method --方法名
+    // desc -- 方法描述
+    // sql -- 执行的脚本
+
+    // 作用:
+    // 举例: 在解析 BaseMapper 的insert()方法时,根据其方法名insert和SqlMethod.method属性,来确定对应的SqlMethod,然后获取其 SQLMethod.sql 进行拼接 sql
+    // 拼接完 sql [指的就是去解析占位符号%s] 后 -> 就可以通过解析
+
     /**
      * 插入
      */

@@ -27,6 +27,8 @@ import java.sql.SQLException;
  * @since 2019-11-10
  */
 public class MybatisPlusLoggingEventListener extends LoggingEventListener {
+    // 忽略~~
+
     private static MybatisPlusLoggingEventListener INSTANCE;
 
     public static MybatisPlusLoggingEventListener getInstance() {

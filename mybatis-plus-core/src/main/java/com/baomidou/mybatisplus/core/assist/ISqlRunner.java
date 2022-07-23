@@ -28,6 +28,7 @@ import java.util.Map;
  * @since 2018/2/7
  */
 public interface ISqlRunner {
+    // 位于: com.baomidou.mybatisplus.core.assist
 
     String INSERT = "com.baomidou.mybatisplus.core.mapper.SqlRunner.Insert";
     String DELETE = "com.baomidou.mybatisplus.core.mapper.SqlRunner.Delete";

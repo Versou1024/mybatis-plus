@@ -45,9 +45,30 @@ public class DeleteByMap extends AbstractMethod {
 
     @Override
     public MappedStatement injectMappedStatement(Class<?> mapperClass, Class<?> modelClass, TableInfo tableInfo) {
+        // 对应: BaseMapper#deleteByMap(@Param(Constants.COLUMN_MAP) Map<String, Object> columnMap)
+        // 对应: SqlMethod.LOGIC_DELETE_BY_MAP / DELETE_BY_MAP -> [取决于逻辑删除还是物理删除]
         String sql;
         SqlMethod sqlMethod = SqlMethod.LOGIC_DELETE_BY_MAP;
+        // 1. 逻辑删除的情况:
+        // <script>
+        // UPDATE %s %s %s
+        // </script>
         if (tableInfo.isWithLogicDelete()) {
+            // 第一个%s: tableInfo.getTableName() -> 表名
+            // 第二个%s: sqlLogicSet(tableInfo) -> 逻辑删除的set的sql脚本
+                // set deleted = 0
+            // 第三个%s: sqlWhereByMap(tableInfo) -> 根据传入的map决定筛选where的逻辑哦
+                // <where>
+                //  <if test=" cm != null and !cm.isEmpty">
+                //      <foreach collection="cm" index="k" item="v" separator="AND">
+                //          <choose>
+                //              <when test="v == null"> ${k} IS NULL </when>        -> k和v来自于<foreach>标签的collection为"cm"的map时,index="k",item="v"
+                //              <otherwise> ${k} = #{v} </otherwise>
+                //          </choose>
+                //      <foreach>
+                //  </if>
+                // and deleted = 0
+                // <where>
             sql = String.format(sqlMethod.getSql(), tableInfo.getTableName(), sqlLogicSet(tableInfo), sqlWhereByMap(tableInfo));
             SqlSource sqlSource = languageDriver.createSqlSource(configuration, sql, Map.class);
             return addUpdateMappedStatement(mapperClass, Map.class, getMethod(sqlMethod), sqlSource);

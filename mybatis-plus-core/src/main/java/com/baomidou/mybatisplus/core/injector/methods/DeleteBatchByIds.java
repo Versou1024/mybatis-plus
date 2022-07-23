@@ -44,14 +44,35 @@ public class DeleteBatchByIds extends AbstractMethod {
 
     @Override
     public MappedStatement injectMappedStatement(Class<?> mapperClass, Class<?> modelClass, TableInfo tableInfo) {
+        // 对应: BaseMapper#deleteBatchIds(@Param(Constants.COLLECTION) Collection<?> idList) -> 形参只有一个: Constants.COLLECTION = "coll"
+        // 对应: SqlMethod.LOGIC_DELETE_BATCH_BY_IDS / DELETE_BATCH_BY_IDS -> 取决于是否为逻辑删除
+
         String sql;
+        // 1. 逻辑删除情况下的批量删除操作
+        // <script>
+        // UPDATE %s %s WHERE %s IN (%s) %s
+        // </script>
         SqlMethod sqlMethod = SqlMethod.LOGIC_DELETE_BATCH_BY_IDS;
         if (tableInfo.isWithLogicDelete()) {
             sql = logicDeleteScript(tableInfo, sqlMethod);
             SqlSource sqlSource = languageDriver.createSqlSource(configuration, sql, Object.class);
             return addUpdateMappedStatement(mapperClass, modelClass, getMethod(sqlMethod), sqlSource);
-        } else {
+        }
+        // 2. 物理删除的下的根据id的批量参数操作
+        //  <script>
+        //  DELETE FROM %s WHERE %s IN (%s)
+        //  </script>
+        else {
             sqlMethod = SqlMethod.DELETE_BATCH_BY_IDS;
+            // 第一个%s: tableInfo.getTableName() -> 表名
+            // 第二个%s: tableInfo.getKeyColumn() -> 主键的列名
+            // 第三个%s: SqlScriptUtils.convertForeach() 构建 <foreach> 标签
+                // <foreach collection="coll" item="item" separator=",">      -> 注意这里的coll就是deleteBatchId(..)传递进来的id集合哦
+                //      <choose>
+                //          <when test="@org.apache.ibatis.type.SimpleTypeRegistry@isSimpleType(item.getClass())"> #{item} </when> -> ❗️简单类型,也就是集合中的元素就是待删除的id
+                //          <otherwise> #{item.keyProperty} </otherwise>        -> ❗️非简单类型,认为集合中的元素是实体类,因此通过item.keyProperty获取实体列中的学会了哦
+                //      </choose>
+                // <foreach>
             sql = String.format(sqlMethod.getSql(), tableInfo.getTableName(), tableInfo.getKeyColumn(),
                 SqlScriptUtils.convertForeach(
                     SqlScriptUtils.convertChoose("@org.apache.ibatis.type.SimpleTypeRegistry@isSimpleType(item.getClass())",
@@ -68,6 +89,24 @@ public class DeleteBatchByIds extends AbstractMethod {
      * @since 3.5.0
      */
     public String logicDeleteScript(TableInfo tableInfo, SqlMethod sqlMethod) {
+        // 获取逻辑删除的批量删除脚本:
+        // <script>
+        // UPDATE %s %s WHERE %s IN (%s) %s
+        // </script>
+        // 第一个%s: tableInfo.getTableName() -> 表名
+        // 第二个%s: sqlLogicSet(tableInfo)   -> 逻辑删除的set字段
+            // set deleted = 1
+        // 第三个%s: tableInfo.getKeyColumn() -> 主键列名
+        // 第四个%s: SqlScriptUtils.convertForeach(..) -> 构建<foreach>标签,处理批量删除逻辑
+            // <foreach collection="coll" item="item" separator=",">      -> 注意这里的coll就是deleteBatchId(..)传递进来的id集合哦
+            //      <choose>
+            //          <when test="@org.apache.ibatis.type.SimpleTypeRegistry@isSimpleType(item.getClass())"> #{item} </when> -> ❗️简单类型,也就是集合中的元素就是待删除的id
+            //          <otherwise> #{item.keyProperty} </otherwise>        -> ❗️非简单类型,认为集合中的元素是实体类,因此通过item.keyProperty获取实体列中的学会了哦
+            //      </choose>
+            // <foreach>
+        // 第五个%s:
+            // and deleted = 0
+
         return String.format(sqlMethod.getSql(), tableInfo.getTableName(),
             sqlLogicSet(tableInfo), tableInfo.getKeyColumn(), SqlScriptUtils.convertForeach(
                 SqlScriptUtils.convertChoose("@org.apache.ibatis.type.SimpleTypeRegistry@isSimpleType(item.getClass())",

@@ -26,6 +26,8 @@ import com.baomidou.mybatisplus.core.incrementer.IKeyGenerator;
  */
 public class H2KeyGenerator implements IKeyGenerator {
 
+    // 在H2数据库中生成用来执行查询的主键的sql
+    // select incrementerName.nextval
     @Override
     public String executeSql(String incrementerName) {
         return "select " + incrementerName + ".nextval";

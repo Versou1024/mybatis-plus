@@ -32,6 +32,8 @@ import java.util.concurrent.ThreadLocalRandom;
  * @since 2016-08-18
  */
 public class Sequence {
+    // 分布式高效有序 ID 生产黑科技(sequence)
+    // 雪花id
 
     private static final Log logger = LogFactory.getLog(Sequence.class);
     /**
@@ -39,23 +41,24 @@ public class Sequence {
      */
     private final long twepoch = 1288834974657L;
     /**
-     * 机器标识位数
+     * 机器标识位数 一共是10位
      */
-    private final long workerIdBits = 5L;
-    private final long datacenterIdBits = 5L;
-    private final long maxWorkerId = -1L ^ (-1L << workerIdBits);
-    private final long maxDatacenterId = -1L ^ (-1L << datacenterIdBits);
+    private final long workerIdBits = 5L;  // 当前机器的id长度
+    private final long datacenterIdBits = 5L; // 当前机器所在的数据中心的id
+    private final long maxWorkerId = -1L ^ (-1L << workerIdBits); // 最大机器id
+    private final long maxDatacenterId = -1L ^ (-1L << datacenterIdBits); // 最大数据中心id
     /**
-     * 毫秒内自增位
+     * 毫秒内自增位 一共是12位,在同一个节点同一毫秒可以生成多个Id的序列化
      */
     private final long sequenceBits = 12L;
-    private final long workerIdShift = sequenceBits;
-    private final long datacenterIdShift = sequenceBits + workerIdBits;
+    private final long workerIdShift = sequenceBits; // 左移17位
+    private final long datacenterIdShift = sequenceBits + workerIdBits; // 左移22位
     /**
      * 时间戳左移动位
+     * 精确到毫秒级，41位的长度可以使用69年。时间位还有一个很重要的作用是可以根据时间进行排序。
      */
     private final long timestampLeftShift = sequenceBits + workerIdBits + datacenterIdBits;
-    private final long sequenceMask = -1L ^ (-1L << sequenceBits);
+    private final long sequenceMask = -1L ^ (-1L << sequenceBits); // 00000000 00000000 00000000 00000000 00000000 00000000 00001111 11111111
 
     private final long workerId;
 
@@ -76,7 +79,9 @@ public class Sequence {
      */
     private InetAddress inetAddress;
 
+    // 用户可以指定ip地址
     public Sequence(InetAddress inetAddress) {
+        // 通过ip地址解析出对应的数据中心标识值/机器标示值
         this.inetAddress = inetAddress;
         this.datacenterId = getDatacenterId(maxDatacenterId);
         this.workerId = getMaxWorkerId(datacenterId, maxWorkerId);
@@ -89,6 +94,7 @@ public class Sequence {
      * @param datacenterId 序列号
      */
     public Sequence(long workerId, long datacenterId) {
+        // 用户可以指定 workerId 以及 datacenterId
         Assert.isFalse(workerId > maxWorkerId || workerId < 0,
             String.format("worker Id can't be greater than %d or less than 0", maxWorkerId));
         Assert.isFalse(datacenterId > maxDatacenterId || datacenterId < 0,
@@ -127,8 +133,10 @@ public class Sequence {
             }
             NetworkInterface network = NetworkInterface.getByInetAddress(this.inetAddress);
             if (null == network) {
+                // ip地址没有对应的网卡接受
                 id = 1L;
             } else {
+                // 通过对网卡上的mac地址计算出数据标识值
                 byte[] mac = network.getHardwareAddress();
                 if (null != mac) {
                     id = ((0x000000FF & (long) mac[mac.length - 2]) | (0x0000FF00 & (((long) mac[mac.length - 1]) << 8))) >> 6;
@@ -147,12 +155,14 @@ public class Sequence {
      * @return 下一个 ID
      */
     public synchronized long nextId() {
+        // 当前时间戳
         long timestamp = timeGen();
-        //闰秒
+        // 闰秒 -- 用以处理时间戳错误问题 -- 可以忽略
         if (timestamp < lastTimestamp) {
             long offset = lastTimestamp - timestamp;
             if (offset <= 5) {
                 try {
+                    // 等待一定时候后再去后去timestamp
                     wait(offset << 1);
                     timestamp = timeGen();
                     if (timestamp < lastTimestamp) {
@@ -171,6 +181,7 @@ public class Sequence {
             sequence = (sequence + 1) & sequenceMask;
             if (sequence == 0) {
                 // 同一毫秒的序列数已经达到最大
+                // 将死循环直到等待行的timestamp超过当前lastTimestamp
                 timestamp = tilNextMillis(lastTimestamp);
             }
         } else {
@@ -180,7 +191,7 @@ public class Sequence {
 
         lastTimestamp = timestamp;
 
-        // 时间戳部分 | 数据中心部分 | 机器标识部分 | 序列号部分
+        // 41位时间戳部分 | 5位数据中心部分 | 5位机器标识部分 | 12位序列号部分
         return ((timestamp - twepoch) << timestampLeftShift)
             | (datacenterId << datacenterIdShift)
             | (workerId << workerIdShift)
@@ -189,6 +200,7 @@ public class Sequence {
 
     protected long tilNextMillis(long lastTimestamp) {
         long timestamp = timeGen();
+        // 死循环直到等待到timestamp超过当前lastTimestamp
         while (timestamp <= lastTimestamp) {
             timestamp = timeGen();
         }

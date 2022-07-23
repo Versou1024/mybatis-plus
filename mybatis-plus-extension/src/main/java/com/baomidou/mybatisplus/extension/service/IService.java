@@ -49,6 +49,11 @@ import java.util.stream.Collectors;
  */
 public interface IService<T> {
 
+    // Iservice必须和ServiceImpl一起使用才有效果哦
+    // Iservice的所有方法
+    // 1. 要不就是直接通过getBaseMapper()执行
+    // 2. 要不就是间接通过ServiceImple完成
+
     /**
      * 默认批次提交数量
      */
@@ -60,6 +65,7 @@ public interface IService<T> {
      * @param entity 实体对象
      */
     default boolean save(T entity) {
+        // 以insert为例
         return SqlHelper.retBool(getBaseMapper().insert(entity));
     }
 

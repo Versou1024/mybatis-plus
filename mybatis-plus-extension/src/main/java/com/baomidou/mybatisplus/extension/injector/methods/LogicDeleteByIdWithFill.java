@@ -45,6 +45,8 @@ import static java.util.stream.Collectors.toList;
 @SuppressWarnings("serial")
 @Deprecated
 public class LogicDeleteByIdWithFill extends AbstractMethod {
+    // 忽略~~
+
 
     public LogicDeleteByIdWithFill() {
         super("deleteByIdWithFill");

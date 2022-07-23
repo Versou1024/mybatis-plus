@@ -29,6 +29,13 @@ import java.sql.SQLException;
  * @since 2019-11-28
  */
 public abstract class AbstractJsonTypeHandler<T> extends BaseTypeHandler<T> {
+    // 位于: extension模块下的handlers扩展相关处理器包
+
+    // 作用:
+    // AbstractJsonTypeHandler<T> extends BaseTypeHandler<T> 说明这是一个 TypeHandler
+    // 从名字中可以看出来主要是和JSON打交道,比如将对象转为JSON存入数据库,或从数据库取出来的值JSON字符串转为对象 -> 都是可以的哦
+
+    // 没啥可说的 -> 忽略
 
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, T parameter, JdbcType jdbcType) throws SQLException {
@@ -53,7 +60,9 @@ public abstract class AbstractJsonTypeHandler<T> extends BaseTypeHandler<T> {
         return StringUtils.isBlank(json) ? null : parse(json);
     }
 
+    // JSON转对象 -> 数据库读取
     protected abstract T parse(String json);
 
+    // 对象转JSON -> 存入数据库
     protected abstract String toJson(T obj);
 }

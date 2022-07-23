@@ -25,6 +25,7 @@ import com.p6spy.engine.spy.appender.MessageFormattingStrategy;
  * @since 2019-02-20
  */
 public class P6SpyLogger implements MessageFormattingStrategy {
+    // 忽略~~
 
     @Override
     public String formatMessage(int connectionId, String now, long elapsed, String category,

@@ -136,6 +136,7 @@ public final class StringUtils {
      * @return 字段名
      */
     public static String getTargetColumn(String column) {
+        // 1. 获取真正的字段名
         if (isNotColumnName(column)) {
             return column.substring(1, column.length() - 1);
         }
@@ -149,11 +150,15 @@ public final class StringUtils {
      * @return 转换好的字符串
      */
     public static String camelToUnderline(String param) {
+        // 字符串驼峰格式 转为 下划线格式
+
+        // 1. param为空,直接返回""
         if (isBlank(param)) {
             return StringPool.EMPTY;
         }
         int len = param.length();
         StringBuilder sb = new StringBuilder(len);
+        // 2. 将param中遇到大写字母后,改为小写字母并添加"_"在前面
         for (int i = 0; i < len; i++) {
             char c = param.charAt(i);
             if (Character.isUpperCase(c) && i > 0) {
@@ -592,10 +597,8 @@ public final class StringUtils {
      * @param str 字符串
      */
     public static String sqlInjectionReplaceBlank(String str) {
+        // SQL 注入字符串去除空白内容：
         if (SqlInjectionUtils.check(str)) {
-            /**
-             * 存在 SQL 注入，去除空白内容
-             */
             Matcher matcher = REPLACE_BLANK.matcher(str);
             return matcher.replaceAll("");
         }

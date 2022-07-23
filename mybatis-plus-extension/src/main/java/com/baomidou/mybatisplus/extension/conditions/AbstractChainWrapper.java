@@ -58,6 +58,10 @@ public abstract class AbstractChainWrapper<T, R, Children extends AbstractChainW
         return wrapperChildren;
     }
 
+    // ---------------------
+    // 所有条件的设置操作 -> 通过 getWrapper().xxx()去重定向完成一遍即可
+    // ---------------------
+
     public Children setEntity(T entity) {
         getWrapper().setEntity(entity);
         return typedThis;
@@ -339,6 +343,9 @@ public abstract class AbstractChainWrapper<T, R, Children extends AbstractChainW
         getWrapper().not(condition, consumer);
         return typedThis;
     }
+    // ---------------------
+    // 以下操作将被禁止
+    // ---------------------
 
     @Override
     public String getSqlSegment() {

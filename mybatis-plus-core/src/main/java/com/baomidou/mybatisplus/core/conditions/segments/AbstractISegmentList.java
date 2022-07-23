@@ -30,6 +30,17 @@ import java.util.List;
  */
 @SuppressWarnings("serial")
 public abstract class AbstractISegmentList extends ArrayList<ISqlSegment> implements ISqlSegment, StringPool {
+    // 位于: com.baomidou.mybatisplus.core.conditions.segments = core模块下的conditions.segments
+
+    // 继承体系:
+    // extends ArrayList<ISqlSegment> -> 组合模式
+    // implements ISqlSegment -> 面向接口编程, ISqlSegment#getSqlSegment()
+
+    // 实现类:
+    //  NormalSegmentList
+    //  GroupBySegmentList
+    //  HavingSegmentList
+    //  OrderBySegmentList
 
     /**
      * 最后一个值
@@ -39,13 +50,14 @@ public abstract class AbstractISegmentList extends ArrayList<ISqlSegment> implem
      * 刷新 lastValue
      */
     boolean flushLastValue = false;
-    /**
-     * 结果集缓存
-     */
+
+    // 缓存 getSqlSegment(..) 方法的返回值
+    // 在没有加入新的SQLSegment到当前集合中,getSqlSegment(..)将返回前一个处理的值 [提供性能]
     private String sqlSegment = EMPTY;
-    /**
-     * 是否缓存过结果集
-     */
+
+    // 是否缓存过结果集
+    // true - 表示没有,不需要处理
+    // false - 表示已经有缓存的新的SqlSegment,可以处理
     private boolean cacheSqlSegment = true;
 
     /**
@@ -57,14 +69,18 @@ public abstract class AbstractISegmentList extends ArrayList<ISqlSegment> implem
     @Override
     public boolean addAll(Collection<? extends ISqlSegment> c) {
         List<ISqlSegment> list = new ArrayList<>(c);
+        // 1. 在其中对值进行判断以及更改 list 的内部元素
         boolean goon = transformList(list, list.get(0), list.get(list.size() - 1));
         if (goon) {
+            // 1.1 cacheSqlSegment标记为false - 因为有加入进行的SQLSegment,在下次调用getSqlSegment(..)就需要重新解析哦
             cacheSqlSegment = false;
             if (flushLastValue) {
                 this.flushLastValue(list);
             }
+            // 1.2 将通过transformList(..)处理过c的结果集合list加入到当前SqlSegment的list中去
             return super.addAll(list);
         }
+        // 2. goon返回false,表示不能SQLSegment的集合c加入到当前集合
         return false;
     }
 
@@ -96,11 +112,15 @@ public abstract class AbstractISegmentList extends ArrayList<ISqlSegment> implem
 
     @Override
     public String getSqlSegment() {
+        // 1. cacheSqlSegment 为true,表示没有新的加入的缓存的sqlSegment,不需要重新解析
         if (cacheSqlSegment) {
             return sqlSegment;
         }
+        // 2. 标记 cacheSqlSegment 为true
         cacheSqlSegment = true;
-        sqlSegment = childrenSqlSegment();
+        // 3. 开始处理 -> 缓存到sqlSegment字段上,下一次调用getSqlSegment(..)除非有加入新的sqlSegment元素,否则会直接返回这里的String类型的sqlSegment [❗️❗️❗️ -> 这说明Wrapper是可以重复使用的哦]
+        sqlSegment = childrenSqlSegment(); // [抽象方法哦]
+        // 4. 返回SQLSegment
         return sqlSegment;
     }
 

@@ -34,6 +34,11 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderItem implements Serializable {
+    // 位于: core模块下的metadata元数据包中
+
+    // 作用:
+    // 封装排序元素载体
+
     private static final long serialVersionUID = 1L;
 
     /**

@@ -22,6 +22,7 @@ package com.baomidou.mybatisplus.core.enums;
  * @since 2016-12-4
  */
 public enum SqlLike {
+    // SQL like 枚举
     /**
      * %值
      */

@@ -1,13 +1,21 @@
 package com.baomidou.mybatisplus.extension.injector.methods;
 
 import com.baomidou.mybatisplus.core.enums.SqlMethod;
-import com.baomidou.mybatisplus.core.injector.methods.DeleteBatchByIds;
+import com.baomidou.mybatisplus.core.injector.AbstractMethod;
+import com.baomidou.mybatisplus.core.injector.AbstractSqlInjector;
+import com.baomidou.mybatisplus.core.injector.ISqlInjector;
+import com.baomidou.mybatisplus.core.injector.methods.*;
 import com.baomidou.mybatisplus.core.metadata.TableFieldInfo;
 import com.baomidou.mybatisplus.core.metadata.TableInfo;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.baomidou.mybatisplus.core.toolkit.Constants;
 import com.baomidou.mybatisplus.core.toolkit.sql.SqlScriptUtils;
+import org.apache.ibatis.annotations.Param;
+import org.springframework.context.annotation.Bean;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -35,6 +43,49 @@ import static java.util.stream.Collectors.toList;
  * @since 3.5.0
  */
 public class LogicDeleteBatchByIds extends DeleteBatchByIds {
+    // 使用方法
+    // CustomSqlInjector.java
+        // public class CustomSqlInjector extends AbstractSqlInjector {
+        //     @Override
+        //     public List<AbstractMethod> getMethodList() {
+        //         return Stream.of(
+        //             new Delete(),
+        //             new DeleteBatchByIds(),
+        //             new DeleteById(),
+        //             new DeleteByMap(),
+        //             new Insert(),
+        //             new SelectBatchByIds(),
+        //             new SelectById(),
+        //             new SelectByMap(),
+        //             new SelectCount(),
+        //             new SelectList(),
+        //             new SelectMaps(),
+        //             new SelectMapsPage(),
+        //             new SelectObjs(),
+        //             new SelectOne(),
+        //             new SelectPage(),
+        //             new Update(),
+        //             new UpdateById(),
+        //             new LogicDeleteBatchByIds()  [❗️❗️❗️]
+        //         ).collect(Collectors.toList());
+        //     }
+        // }
+    // 注入到ioc容器
+        // @Bean
+        // public ISqlInjector sqlInjector() { [❗️❗️❗️ 注入CustomSqlInjector]
+        //     return new CustomSqlInjector();
+        // }
+    // CustomBaseMapper.java
+        // public CustomBaseMapper<T> extends BaseMapper<T>{
+        //     int logicDeleteBatchByIds(@Param(Constants.COLLECTION) Collection<?> idList); // [❗️❗️❗️ 额外扩展: logicDeleteBatchByIds]
+        // }
+    // UserMapper.java
+        // @Repository
+        // public interface UserMapper extends CustomBaseMapper<User> { // [❗️❗️❗️ 使用CustomBaseMapper]
+        //
+        // }
+
+    // note: 这个就是用户注入的AbstractMethod的方式
 
     public LogicDeleteBatchByIds() {
         super();
@@ -46,10 +97,12 @@ public class LogicDeleteBatchByIds extends DeleteBatchByIds {
 
     @Override
     public String logicDeleteScript(TableInfo tableInfo, SqlMethod sqlMethod) {
+        // 1. 过滤有自动更新填充的字段,且非逻辑删除的字段集合
         List<TableFieldInfo> fieldInfos = tableInfo.getFieldList().stream()
             .filter(TableFieldInfo::isWithUpdateFill)
             .filter(f -> !f.isLogicDelete())
             .collect(toList());
+        // 2.1 有自动更新填充的需求
         if (CollectionUtils.isNotEmpty(fieldInfos)) {
             String sqlScript = fieldInfos.stream()
                 .map(i -> i.getSqlSet(COLLECTION + "[0].")).collect(joining(EMPTY));
@@ -61,7 +114,9 @@ public class LogicDeleteBatchByIds extends DeleteBatchByIds {
                         "#{item}", "#{item." + tableInfo.getKeyProperty() + "}"),
                     COLLECTION, null, "item", COMMA),
                 tableInfo.getLogicDeleteSql(true, true));
-        } else {
+        }
+        // 2.2 没有自动更新填充的需求,调用  super.logicDeleteScript(tableInfo, sqlMethod)
+        else {
             return super.logicDeleteScript(tableInfo, sqlMethod);
         }
     }

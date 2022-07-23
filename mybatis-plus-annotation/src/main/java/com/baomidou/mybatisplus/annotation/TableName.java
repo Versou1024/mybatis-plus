@@ -27,6 +27,17 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 public @interface TableName {
+    // mp 全称就是: mybatis-plus
+
+    // 关于`autoResultMap`属性的说明:
+    // mp会自动构建一个ResultMap并注入到mybatis里(一般用不上).下面讲两句:
+    // 因为mp底层是mybatis,所以一些mybatis的常识你要知道,mp只是帮你注入了常用crud到mybatis里,
+    // 注入之前可以说是动态的(根据你entity的字段以及注解变化而变化),
+    // 但是注入之后是静态的(等于你写在xml的东西) 而对于直接指定typeHandler,mybatis只支持你写在2个地方:
+    //
+    // 1. 定义在resultMap里,只作用于select查询的返回结果封装
+    // 2. 定义在insert和update的sql的#{property}里的property后面(例:#{property,typeHandler=xxx.xxx.xxx}),只作用于设置值
+    // 而除了这两种直接指定typeHandler -- mybatis有一个全局的扫描你自己的typeHandler包的配置,这是根据你的property的类型去找typeHandler并使用.
 
     /**
      * 实体对应的表名
@@ -50,12 +61,19 @@ public @interface TableName {
      * @since 3.1.1
      */
     boolean keepGlobalPrefix() default false;
+    // 是否需要使用 GlobalConfig 中的 tablePrefix 表名前缀的值 -> 前提是你需要指定 @TableName的 value 值
+    // 否则表名tableName()取决于 TableInfoHelper#initTableNameWithDbConfig(..) 方法
+    // 简述:
+    // 1. 拿到实体类的类名作为tableName
+    // 2. dbConfig.isTableUnderline 中是否开启表名下划线申明 -> 是的话,tableName从驼峰命名改为下划线
+    // 3. DbConfig中是否开启表名大写命名判断 -> 是的话,tableName全部大写字母 -> 否则就首个字母小写
 
     /**
      * 实体映射结果集,
      * 只生效于 mp 自动注入的 method
      */
     String resultMap() default "";
+    // xml 中 resultMap 的 id
 
     /**
      * 是否自动构建 resultMap 并使用,

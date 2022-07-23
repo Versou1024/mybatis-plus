@@ -28,6 +28,13 @@ import static java.util.stream.Collectors.toList;
  * @since 2018-06-09
  */
 public interface IPage<T> extends Serializable {
+    // 位于: core模块的metadata元数据局包
+
+    // 作用:
+    // I Page = 分页 Page 对象接口
+    // 定义分页的数据必须实现的接口哦
+
+    // 定义:
 
     /**
      * 获取排序信息，排序的字段和正反序
@@ -92,7 +99,9 @@ public interface IPage<T> extends Serializable {
         if (getSize() == 0) {
             return 0L;
         }
+        // 1. 整数页数
         long pages = getTotal() / getSize();
+        // 2. 余数不等于0,表示还有部分数据需要额外使用一页装起来,因此pages++
         if (getTotal() % getSize() != 0) {
             pages++;
         }

@@ -37,19 +37,31 @@ import java.util.List;
  * @since 2016-03-11
  */
 public class MybatisXMLLanguageDriver extends XMLLanguageDriver {
+    // 位于: 直接位于core模块下
 
+    // 作用:
+    // 继承XMLLanguageDriver,LanguageDriver能够用来产生 ParameterHandler \ SqlSource \ ResourceSetHandler
+
+    // TODO 下面改动啦 -> 将原本使用的 DefaultParameterHandler 修改为 MybatisParameterHandler [ 额外扩展MetaObjectHandler的自动填充\IdentifyGenerator主键自动注入的功能 ]
     @Override
     public ParameterHandler createParameterHandler(MappedStatement mappedStatement,
                                                    Object parameterObject, BoundSql boundSql) {
         // 使用 MybatisParameterHandler 而不是 ParameterHandler
         return new MybatisParameterHandler(mappedStatement, parameterObject, boundSql);
     }
+    // TODO 上面改动啦
 
+
+    // TODO 下面改动啦
     @Override
     public SqlSource createSqlSource(Configuration configuration, String script, Class<?> parameterType) {
+        // 1. 拿到Configuration对应的DbConfig
         GlobalConfig.DbConfig config = GlobalConfigUtils.getDbConfig(configuration);
+        // 2. 是否需要解析占位符 [❗️❗️❗️]
         if (config.isReplacePlaceholder()) {
+            // 2.1 查找script中的需要填充的数据
             List<String> find = SqlUtils.findPlaceholder(script);
+            // 2.2 开始处理占位符
             if (CollectionUtils.isNotEmpty(find)) {
                 try {
                     script = SqlUtils.replaceSqlPlaceholder(script, find, config.getEscapeSymbol());
@@ -60,4 +72,6 @@ public class MybatisXMLLanguageDriver extends XMLLanguageDriver {
         }
         return super.createSqlSource(configuration, script, parameterType);
     }
+    // TODO 上面改动啦
+
 }

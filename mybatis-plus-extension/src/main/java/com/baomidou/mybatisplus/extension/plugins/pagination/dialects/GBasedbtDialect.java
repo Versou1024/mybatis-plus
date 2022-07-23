@@ -25,6 +25,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.DialectModel;
  * @since 2021-07-20
  */
 public class GBasedbtDialect implements IDialect {
+    // 忽略 ~~ 多数情况使用MySqlDialect
 
     @Override
     public DialectModel buildPaginationSql(String originalSql, long offset, long limit) {

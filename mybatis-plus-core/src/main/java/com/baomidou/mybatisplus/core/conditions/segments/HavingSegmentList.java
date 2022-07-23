@@ -31,12 +31,16 @@ import static java.util.stream.Collectors.joining;
  */
 @SuppressWarnings("serial")
 public class HavingSegmentList extends AbstractISegmentList {
+    // 命名:
+    // Having Segment List = Having SQL 片段
 
     @Override
     protected boolean transformList(List<ISqlSegment> list, ISqlSegment firstSegment, ISqlSegment lastSegment) {
+        // 1. 非空就追加 SQLKeyword.AND
         if (!isEmpty()) {
             this.add(SqlKeyword.AND);
         }
+        // 2. 移除待加入list的第一个元素
         list.remove(0);
         return true;
     }
@@ -46,6 +50,13 @@ public class HavingSegmentList extends AbstractISegmentList {
         if (isEmpty()) {
             return EMPTY;
         }
+        // 1. 处理
+        // 分隔符为:   " "
+        // 前缀为:     " HAVING BY"
+        // 后缀为:     ""
+        // 每行数据为:  ISqlSegment::getSqlSegment
+
+        // 一般情况都是: HAVING ... [系列比较]
         return this.stream().map(ISqlSegment::getSqlSegment).collect(joining(SPACE, SPACE + HAVING.getSqlSegment() + SPACE, EMPTY));
     }
 }

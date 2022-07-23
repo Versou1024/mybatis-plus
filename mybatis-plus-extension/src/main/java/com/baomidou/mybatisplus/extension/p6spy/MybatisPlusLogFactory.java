@@ -28,6 +28,7 @@ import com.p6spy.engine.spy.option.P6OptionsRepository;
  * @since 2019-11-10
  */
 public class MybatisPlusLogFactory implements P6Factory {
+    // 忽略~~
 
     @Override
     public P6LoadableOptions getOptions(P6OptionsRepository optionsRepository) {

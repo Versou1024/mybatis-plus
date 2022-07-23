@@ -33,6 +33,7 @@ import java.io.IOException;
  * @since 2020-08-11
  */
 public class ImadcnIdentifierGenerator implements IdentifierGenerator, Closeable {
+    // 位于: com.baomidou.mybatisplus.core.incrementer = core模块的incrementer包下
 
     private final SnowflakeGenerator idGenerator;
     private final CompressUUIDGenerator uuidGenerator = new CompressUUIDGenerator();

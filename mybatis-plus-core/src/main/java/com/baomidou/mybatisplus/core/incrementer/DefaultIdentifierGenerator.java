@@ -27,17 +27,38 @@ import java.net.InetAddress;
  * @since 3.3.0
  */
 public class DefaultIdentifierGenerator implements IdentifierGenerator {
+    // 位于: com.baomidou.mybatisplus.core.incrementer = core项目的incrementer包
+
+    // 命名:
+    // Default IdentifierGenerator = 默认的id生成器
+
+    // 使用算法:
+    // DefaultIdentifierGenerator 生成器的默认实现 -- 分布式雪花id生成器
+
+    // 起作用的条件:
+    // a. 用户没有注入SqlSessionFactory时,用户也没有向ioc容器注入IdentifierGenerator
+    //      GlobalConfig.IdentifierGenerator() 就会是默认的 DefaultIdentifierGenerator
+    // b. 用户注入的SqlSessionFactory,使用的是 MybatisSqlSessionFactoryBean#getObject() 时没有注入 GlobalConfig 或者注入的 GlobalConfig 没有设置 IdentifierGenerator
+    //     虽然在GlobalConfig.IdentifierGenerator()默认是null,但是在后续的 MybatisSqlSessionFactoryBuild.build(Configuration) -> globalConfig.setIdentifierGenerator(identifierGenerator) 就会是设置为默认的 DefaultIdentifierGenerator
+
+    // 代码:
+    // MybatisSqlSessionFactoryBean#getObject() -> MybatisSqlSessionFactoryBean#afterPropertiesSet(..) ->
+    // MybatisSqlSessionFactoryBuilder#build(Configuration...) -> 就会设置默认的id生成器: DefaultIdentifierGenerator
+
     private final Sequence sequence;
 
     public DefaultIdentifierGenerator() {
+        // 无ip - Sequence 中自动查找ip
         this.sequence = new Sequence(null);
     }
 
     public DefaultIdentifierGenerator(InetAddress inetAddress) {
+        // 指定ip -> 需要通过ip确定雪花id中的workerId/dataCenterId
         this.sequence = new Sequence(inetAddress);
     }
 
     public DefaultIdentifierGenerator(long workerId, long dataCenterId) {
+        // 直接指定 workerId/dataCenterId [就不需要ip啦]
         this.sequence = new Sequence(workerId, dataCenterId);
     }
 

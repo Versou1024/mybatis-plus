@@ -34,6 +34,11 @@ import java.util.function.Predicate;
 public class QueryChainWrapper<T> extends AbstractChainWrapper<T, String, QueryChainWrapper<T>, QueryWrapper<T>>
     implements ChainQuery<T>, Query<QueryChainWrapper<T>, T, String> {
 
+    // 实际上作用: 和 LambdaQueryChainWrapper 的实现模式是通用的
+    // 只不过诶:
+    //  a: QueryChainWrapper 使用的Wrapper对象是 QueryWrapper
+    //  b: LambdaQueryChainWrapper 使用的Wrapper对象是 LambdaQueryWrapper
+
     private final BaseMapper<T> baseMapper;
 
     public QueryChainWrapper(BaseMapper<T> baseMapper) {

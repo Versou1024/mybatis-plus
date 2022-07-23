@@ -30,6 +30,13 @@ import java.util.jar.JarFile;
  * @author zengzhihong
  */
 public class MybatisPlusVersion {
+    // 位于: 直接位于core项目下
+
+    // 作用:
+    // 获取Mybatis-Plus版本
+    // 忽略 ~~~
+
+
 
     private MybatisPlusVersion() {
     }

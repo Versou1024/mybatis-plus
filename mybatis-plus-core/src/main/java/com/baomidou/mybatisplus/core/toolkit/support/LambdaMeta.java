@@ -6,6 +6,7 @@ package com.baomidou.mybatisplus.core.toolkit.support;
  * Created by hcl at 2021/5/14
  */
 public interface LambdaMeta {
+    // 位于: com.baomidou.mybatisplus.core.toolkit.support
 
     /**
      * 获取 lambda 表达式实现方法的名称

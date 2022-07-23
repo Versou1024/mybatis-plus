@@ -30,6 +30,8 @@ public class SqlParserUtils {
      * @return ignore
      */
     public static String getOriginalCountSql(String originalSql) {
+        // SQL 解析工具类
+        // 获取 COUNT 原生 SQL 包装
         return String.format("SELECT COUNT(*) FROM (%s) TOTAL", originalSql);
     }
 }

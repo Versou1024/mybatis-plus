@@ -24,6 +24,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.DialectModel;
  * @since 2020-07-30
  */
 public class SybaseDialect implements IDialect {
+    // 忽略 ~~ 多数情况使用MySqlDialect
+
 
     private final boolean hasTop; // sybase12.5.4以前，不支持select top
 

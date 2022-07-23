@@ -22,6 +22,10 @@ package com.baomidou.mybatisplus.extension.p6spy;
  * @since 2019-02-20
  */
 public class StdoutLogger extends com.p6spy.engine.spy.appender.StdoutLogger {
+    // 位于: extension模块下的p6spy包下
+
+    // 作用:
+    // StdoutLogger 控制台标准日志输出
 
     @Override
     public void logText(String text) {

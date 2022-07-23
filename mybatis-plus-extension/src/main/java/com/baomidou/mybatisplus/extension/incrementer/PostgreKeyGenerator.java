@@ -26,6 +26,8 @@ import com.baomidou.mybatisplus.core.incrementer.IKeyGenerator;
  */
 public class PostgreKeyGenerator implements IKeyGenerator {
 
+    // 在Kingbase数据库中生成用来执行查询的主键的sql
+    // "select nextval('" + incrementerName + "')"
     @Override
     public String executeSql(String incrementerName) {
         return "select nextval('" + incrementerName + "')";

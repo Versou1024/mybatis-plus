@@ -44,7 +44,18 @@ public class SelectById extends AbstractMethod {
 
     @Override
     public MappedStatement injectMappedStatement(Class<?> mapperClass, Class<?> modelClass, TableInfo tableInfo) {
+        // 对应: BaseMapper#selectById(Serializable id)
+        // 对应: SqlMethod.SELECT_BY_ID
+        // 脚本框架:
+        // SELECT %s FROM %s WHERE %s=#{%s} %s
         SqlMethod sqlMethod = SqlMethod.SELECT_BY_ID;
+        // 第1个%s: sqlSelectColumns(tableInfo, false) ->
+            // idColumn as idProperty,column1 as property1, column2, column3 as property3
+        // 第2个%s: tableInfo.getTableName() -> 表名
+        // 第3个%s: tableInfo.getKeyColumn() -> 主键id的列名
+        // 第4个%s: tableInfo.getKeyProperty() -> 主键id的属性名
+        // 第5个%s: tableInfo.getLogicDeleteSql(true, true) -> 逻辑未删除
+            //  and deleted = 0
         SqlSource sqlSource = new RawSqlSource(configuration, String.format(sqlMethod.getSql(),
                 sqlSelectColumns(tableInfo, false),
                 tableInfo.getTableName(), tableInfo.getKeyColumn(), tableInfo.getKeyProperty(),

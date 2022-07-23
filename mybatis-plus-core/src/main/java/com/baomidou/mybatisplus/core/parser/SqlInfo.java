@@ -27,14 +27,15 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 public class SqlInfo {
+    // 位于: core模块下的parser解析包
 
-    /**
-     * SQL 内容
-     */
+    // 作用:
+    //
+
+    // SQL 内容
     private String sql;
-    /**
-     * 是否排序
-     */
+
+    // 是否排序
     private boolean orderBy;
 
     /**

@@ -25,6 +25,11 @@ import java.util.regex.Pattern;
  * @since 2021-08-15
  */
 public class SqlInjectionUtils {
+    // 位于:  com.baomidou.mybatisplus.core.toolkit.sql = core模块下的toolkit工具包下的sql
+
+    // 命名:
+    // Sql Injection Utils = sql 注入验证工具列
+
     /**
      * SQL语法检查正则：符合两个关键字（有先后顺序）才算匹配
      */
@@ -43,7 +48,7 @@ public class SqlInjectionUtils {
      */
     public static boolean check(String value) {
         Objects.requireNonNull(value);
-        // 处理是否包含SQL注释字符 || 检查是否包含SQL注入敏感字符
+        // 检查参数是否存在 SQL 注入: 处理是否包含SQL注释字符 || 检查是否包含SQL注入敏感字符
         return SQL_COMMENT_PATTERN.matcher(value).find() || SQL_SYNTAX_PATTERN.matcher(value).find();
     }
 }

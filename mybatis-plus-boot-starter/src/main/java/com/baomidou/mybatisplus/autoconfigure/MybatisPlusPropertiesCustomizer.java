@@ -25,6 +25,14 @@ package com.baomidou.mybatisplus.autoconfigure;
  */
 @FunctionalInterface
 public interface MybatisPlusPropertiesCustomizer {
+    // 命名:
+    // MybatisPlusProperties Customizer = 对MybatisPlusProperties的自定义编辑器
+
+    // 作用:
+    // 用户通过在项目中实现MybatisPlusPropertiesCustomizer完成对MybatisPlusProperties的定制化 [note: 需要将实现类加入到ioc容器中,否则无效]
+
+    // 结论:
+    // ❗️❗️❗️因此建议用户通过 MybatisPlusPropertiesCustomizer -- 修改 MybatisPlusProperties
 
     /**
      * Customize the given a {@link MybatisPlusProperties} object.

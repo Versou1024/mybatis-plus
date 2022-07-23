@@ -51,17 +51,28 @@ public class DataPermissionInterceptor extends JsqlParserSupport implements Inne
 
     @Override
     public void beforeQuery(Executor executor, MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) throws SQLException {
+        // 1. 是否忽略 DataPermissionInterceptor 拦截器 -> 如果忽略,直接return
         if (InterceptorIgnoreHelper.willIgnoreDataPermission(ms.getId())) return;
+        // 2. 转换为MPBoundSql
         PluginUtils.MPBoundSql mpBs = PluginUtils.mpBoundSql(boundSql);
+        // 3. 处理: sql
         mpBs.sql(parserSingle(mpBs.sql(), ms.getId()));
     }
 
     @Override
     protected void processSelect(Select select, int index, String sql, Object obj) {
+        // 重写select操作
+        // index = 0 , sql = BoundSql.getSql(..) , obj = MappedStatement.getId()
+
+        // 1. 拿到SelectBody
         SelectBody selectBody = select.getSelectBody();
+        // 2.1 普通查询 [99%的亲啊坤哥]
         if (selectBody instanceof PlainSelect) {
+            // 2.1.1 重新设置 where 条件
             this.setWhere((PlainSelect) selectBody, (String) obj);
-        } else if (selectBody instanceof SetOperationList) {
+        }
+        // 2.2 UNION 联合查询 [也有可能]
+        else if (selectBody instanceof SetOperationList) {
             SetOperationList setOperationList = (SetOperationList) selectBody;
             List<SelectBody> selectBodyList = setOperationList.getSelects();
             selectBodyList.forEach(s -> this.setWhere((PlainSelect) s, (String) obj));
@@ -75,6 +86,7 @@ public class DataPermissionInterceptor extends JsqlParserSupport implements Inne
      * @param whereSegment 查询条件片段
      */
     protected void setWhere(PlainSelect plainSelect, String whereSegment) {
+        // 1. 使用 DataPermissionHandler#getSqlSegment(..) 获取新的sql片段
         Expression sqlSegment = dataPermissionHandler.getSqlSegment(plainSelect.getWhere(), whereSegment);
         if (null != sqlSegment) {
             plainSelect.setWhere(sqlSegment);

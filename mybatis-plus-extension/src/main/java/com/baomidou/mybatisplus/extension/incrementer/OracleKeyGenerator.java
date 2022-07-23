@@ -26,6 +26,8 @@ import com.baomidou.mybatisplus.core.incrementer.IKeyGenerator;
  */
 public class OracleKeyGenerator implements IKeyGenerator {
 
+    // 在Kingbase数据库中生成用来执行查询的主键的sql
+    // "SELECT " + incrementerName + ".NEXTVAL FROM DUAL"
     @Override
     public String executeSql(String incrementerName) {
         return "SELECT " + incrementerName + ".NEXTVAL FROM DUAL";

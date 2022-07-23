@@ -35,8 +35,7 @@ import java.util.function.Predicate;
  * @since 2017-05-26
  */
 @SuppressWarnings("serial")
-public class LambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, LambdaQueryWrapper<T>>
-    implements Query<LambdaQueryWrapper<T>, T, SFunction<T, ?>> {
+public class LambdaQueryWrapper<T> extends AbstractLambdaWrapper<T, LambdaQueryWrapper<T>> implements Query<LambdaQueryWrapper<T>, T, SFunction<T, ?>> {
 
     /**
      * 查询字段

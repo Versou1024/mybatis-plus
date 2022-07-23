@@ -48,6 +48,10 @@ import java.util.function.Supplier;
  * @since 2016-11-06
  */
 public final class SqlHelper {
+    // 位于:  com.baomidou.mybatisplus.extension.toolkit = extension模块的toolkit下
+
+    // 命名:
+    // Sql Helper = SQL辅助类
 
     /**
      * 主要用于 service 和 ar
@@ -83,6 +87,7 @@ public final class SqlHelper {
      * @return SqlSession
      */
     public static SqlSession sqlSession(Class<?> clazz) {
+        // 获取SqlSession
         return SqlSessionUtils.getSqlSession(GlobalConfigUtils.currentSessionFactory(clazz));
     }
 
@@ -105,6 +110,7 @@ public final class SqlHelper {
      * @return boolean
      */
     public static boolean retBool(Integer result) {
+        // 将结果Integer类型转换为boolean类型
         return null != result && result >= 1;
     }
 

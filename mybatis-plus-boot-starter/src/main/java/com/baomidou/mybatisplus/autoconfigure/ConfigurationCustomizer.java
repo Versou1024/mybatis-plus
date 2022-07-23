@@ -25,6 +25,25 @@ import com.baomidou.mybatisplus.core.MybatisConfiguration;
  */
 @FunctionalInterface
 public interface ConfigurationCustomizer {
+    // 类似: MybatisPlusPropertiesCustomizer
+
+    // 命名:
+    // Configuration Customizer = 对MybatisConfiguration的自定义编辑器
+
+    // 作用:
+    // 用户通过在项目中实现ConfigurationCustomizer接口完成对MybatisConfiguration的定制化处理 [note: 需要将实现类加入到ioc容器中,否则无效]
+    // MybatisPlusAutoConfiguration类将会在初始化方法afterPropertiesSet()中回调用户自定义的ConfigurationCustomizer类 -> 传入 MybatisConfiguration
+
+    // 实际上:
+    // 作用: ❗️❗️❗️❗️❗️❗️
+    // 接受Spring中以"mybatis-plus"开头的yaml配置,存储在当前类中
+    // ❗️❗️❗️❗️❗️❗️❗️❗️❗️ [yaml配置可能会失效]
+    // 真的恶心 -> 通过观察源码我们可以发现,当我们将相关配置写在yaml中,会被解析加载到MybatisPlusProperties中
+    // -> 而MybatisPlusProperties将会被MybatisPlusAutoConfiguration的构造器依赖注入进去 [只有这个地方使用到]
+    // -> 而 @Bean @ConditionalOnMissingBean SqlSessionFactory(..) 创建SqlSessionFactory的前提是,用户没有注入SqlSessionFactory
+    // -> 因此用户如果注入 SqlSessionFactory [多数据源的情况,或者用户想要定制的情况下]  -> yaml 配置文件的大部分属性就不会配置到SqlSessionFactory上,因此就会失效
+    // -> 同样会导致用户自定义的 ConfigurationCustomizer 失效
+
 
     /**
      * Customize the given a {@link MybatisConfiguration} object.

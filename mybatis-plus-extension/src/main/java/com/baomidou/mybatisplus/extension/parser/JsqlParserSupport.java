@@ -42,10 +42,13 @@ public abstract class JsqlParserSupport {
     protected final Log logger = LogFactory.getLog(this.getClass());
 
     public String parserSingle(String sql, Object obj) {
+        // ❗️❗️❗️ ->
+        // 原始Sql: BoundSql#getSql(..)
         if (logger.isDebugEnabled()) {
             logger.debug("original SQL: " + sql);
         }
         try {
+            // 1. 解析为statement
             Statement statement = CCJSqlParserUtil.parse(sql);
             return processParser(statement, 0, sql, obj);
         } catch (JSQLParserException e) {
@@ -60,8 +63,10 @@ public abstract class JsqlParserSupport {
         try {
             // fixed github pull/295
             StringBuilder sb = new StringBuilder();
+            // 1. 不同于 parserSingle(..) 这里解析后返回的是Statements
             Statements statements = CCJSqlParserUtil.parseStatements(sql);
             int i = 0;
+            // 2. 遍历Statements
             for (Statement statement : statements.getStatements()) {
                 if (i > 0) {
                     sb.append(StringPool.SEMICOLON);
@@ -82,24 +87,38 @@ public abstract class JsqlParserSupport {
      * @return sql
      */
     protected String processParser(Statement statement, int index, String sql, Object obj) {
+        // 执行 SQL 解析
+
         if (logger.isDebugEnabled()) {
             logger.debug("SQL to parse, SQL: " + sql);
         }
+        // 1. 插入
         if (statement instanceof Insert) {
             this.processInsert((Insert) statement, index, sql, obj);
-        } else if (statement instanceof Select) {
+        }
+        // 2. 查询
+        else if (statement instanceof Select) {
             this.processSelect((Select) statement, index, sql, obj);
-        } else if (statement instanceof Update) {
+        }
+        // 3. 更新
+        else if (statement instanceof Update) {
             this.processUpdate((Update) statement, index, sql, obj);
-        } else if (statement instanceof Delete) {
+        }
+        // 4. 删除
+        else if (statement instanceof Delete) {
             this.processDelete((Delete) statement, index, sql, obj);
         }
+        // 5. statement在上面的 processXxxx(..) 被处理后,重新去获取sql值哦
         sql = statement.toString();
         if (logger.isDebugEnabled()) {
             logger.debug("parse the finished SQL: " + sql);
         }
+        // 6. 将处理后得到的新sql返回
         return sql;
     }
+
+    // ❗️❗️❗️
+    // 以下:四个方法实现类有需要的时候就需要重写哦
 
     /**
      * 新增

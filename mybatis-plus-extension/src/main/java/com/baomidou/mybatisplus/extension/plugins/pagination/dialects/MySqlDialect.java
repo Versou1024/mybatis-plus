@@ -25,14 +25,23 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.DialectModel;
  * @since 2016-01-23
  */
 public class MySqlDialect implements IDialect {
+    // 对于IDialect的多个实现类,我们关注我们经常使用的: MySqlDialect 即可哦
 
     @Override
     public DialectModel buildPaginationSql(String originalSql, long offset, long limit) {
+        // 1. 构建 sql = originalSql + "LIMIT ?"
         StringBuilder sql = new StringBuilder(originalSql).append(" LIMIT ").append(FIRST_MARK);
+        // 2.1 offset非0,即需要便宜量
         if (offset != 0L) {
+            // 2.1.1 sql = originalSql + "LIMIT ?,?"
             sql.append(StringPool.COMMA).append(SECOND_MARK);
+            // 2.1.2 构建DialectModel
+            // DialectModel#setConsumerChain(..) 0> 设置List和Map中传入的offset和limit的消费方式哦
+            // ❗️❗️❗️ 因此: MySqlDialect 创建出来的 DialectModel.dialectSql = originalSql + "LIMIT ?,?"
             return new DialectModel(sql.toString(), offset, limit).setConsumerChain();
-        } else {
+        }
+        // 2.2 不需要偏移量时,直接指定limit即可哦
+        else {
             return new DialectModel(sql.toString(), limit).setConsumer(true);
         }
     }

@@ -33,6 +33,8 @@ import org.apache.ibatis.mapping.SqlSource;
  */
 @SuppressWarnings("serial")
 public class Upsert extends AbstractMethod {
+    // 忽略~~
+
 
     public Upsert() {
         super(SqlMethod.UPSERT_ONE.getMethod());

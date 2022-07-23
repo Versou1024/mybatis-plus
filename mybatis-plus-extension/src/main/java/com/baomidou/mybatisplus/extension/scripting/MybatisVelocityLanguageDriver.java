@@ -29,6 +29,8 @@ import org.mybatis.scripting.velocity.VelocityLanguageDriverConfig;
  */
 @NoArgsConstructor
 public class MybatisVelocityLanguageDriver extends VelocityLanguageDriver {
+    // 忽略~~
+
 
     public MybatisVelocityLanguageDriver(VelocityLanguageDriverConfig driverConfig) {
         super(driverConfig);

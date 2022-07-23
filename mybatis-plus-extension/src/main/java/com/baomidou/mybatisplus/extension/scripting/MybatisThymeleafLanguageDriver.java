@@ -30,6 +30,7 @@ import org.thymeleaf.ITemplateEngine;
  */
 @NoArgsConstructor
 public class MybatisThymeleafLanguageDriver extends ThymeleafLanguageDriver {
+    // 忽略~~
 
     public MybatisThymeleafLanguageDriver(ThymeleafLanguageDriverConfig config) {
         super(config);

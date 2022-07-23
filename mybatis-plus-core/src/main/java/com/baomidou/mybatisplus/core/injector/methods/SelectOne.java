@@ -44,7 +44,17 @@ public class SelectOne extends AbstractMethod {
 
     @Override
     public MappedStatement injectMappedStatement(Class<?> mapperClass, Class<?> modelClass, TableInfo tableInfo) {
+        // 1. 确认 SqlMethod ->
+        // <script>
+        // %s SELECT %s FROM %s %s %s
+        // </script>
         SqlMethod sqlMethod = SqlMethod.SELECT_ONE;
+        // 分析:
+        // 第一个%s: sqlFirst() 返回的一般都是: <if test=" ew != null and ew.sqlFirst != null"> ${ew.sqlFirst} </test>
+        // 第二个%s: sqlSelectColumns(tableInfo, true) 返回的一般都是: 需要查询的字段的sql片段
+        // 第三个%s: tableInfo.getTableName() 返回一般都是: 表名
+        // 第四个%s: sqlWhereEntityWrapper(true, tableInfo)  返回的一般是: 需要筛选的字段的where片段
+        // 第五个%s: sqlComment() 返回的一般是: <if test=" ew != null and ew.sqlComment != null"> ${ew.sqlComment} </test>
         SqlSource sqlSource = languageDriver.createSqlSource(configuration, String.format(sqlMethod.getSql(),
             sqlFirst(), sqlSelectColumns(tableInfo, true), tableInfo.getTableName(),
             sqlWhereEntityWrapper(true, tableInfo), sqlComment()), modelClass);

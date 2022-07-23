@@ -22,6 +22,10 @@ package com.baomidou.mybatisplus.core.exceptions;
  * @since 2016-01-23
  */
 public class MybatisPlusException extends RuntimeException {
+    // 位于: core模块下的exceptions包
+
+    // 作用: 表示MP过程的异常
+
 
     private static final long serialVersionUID = 1L;
 

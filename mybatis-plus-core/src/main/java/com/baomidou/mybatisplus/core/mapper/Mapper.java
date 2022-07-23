@@ -21,5 +21,6 @@ package com.baomidou.mybatisplus.core.mapper;
  * @author nieqiurong 2019/4/13.
  */
 public interface Mapper<T> {
+    // 顶级Mapper接口哦
 
 }

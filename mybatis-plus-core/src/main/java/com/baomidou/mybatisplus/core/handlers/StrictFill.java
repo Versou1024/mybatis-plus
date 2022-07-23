@@ -29,17 +29,17 @@ import java.util.function.Supplier;
 @Data
 @AllArgsConstructor
 public class StrictFill<T, E extends T> {
-    /**
-     * 字段名
-     */
+
+    // 严格填充模式 model
+    // 有 字段名/字段类型/获取字段值的函数
+
+    // 字段名
     private String fieldName;
-    /**
-     * 字段类型
-     */
+
+    // 字段类型
     private Class<T> fieldType;
-    /**
-     * 获取字段值的函数
-     */
+
+    // 获取字段值的函数
     private Supplier<E> fieldVal;
 
     public static <T, E extends T> StrictFill<T, E> of(String fieldName, Class<T> fieldType, E fieldVal) {

@@ -22,6 +22,7 @@ package com.baomidou.mybatisplus.extension.plugins.handler;
  * @since 3.4.0
  */
 public interface TableNameHandler {
+    // TableNameHandler
 
     /**
      * 生成动态表名

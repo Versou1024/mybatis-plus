@@ -25,10 +25,19 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.DialectModel;
  * @since 2016-01-23
  */
 public interface IDialect {
-    /**
-     * 这俩没什么特殊意义
-     * 只是为了实现类方便使用,以及区分分页 sql 的参数
-     */
+    // 位于:
+    // extension模块下的plugins.pagination.dialects方法包下
+
+    // 作用:
+    // 组装分页语句
+
+    // 实现类: 基于各种数据库的分页查询要求,构建不同的XxxDialect分页语句组装对象
+    //      DB2Dialect
+    //      GBasedbtDialect
+    //      MySqlDialect
+    //      .. . 等等
+
+    // 这俩没什么特殊意义 只是为了实现类方便使用,以及区分分页 sql 的参数
     String FIRST_MARK = StringPool.QUESTION_MARK;
     String SECOND_MARK = StringPool.QUESTION_MARK;
 
@@ -41,4 +50,5 @@ public interface IDialect {
      * @return 分页模型
      */
     DialectModel buildPaginationSql(String originalSql, long offset, long limit);
+    // 组装分页语句 -> 因此需要传入原来的originalSql以及offset和limit的值
 }

@@ -24,6 +24,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.DialectModel;
  * @since 2016-01-23
  */
 public class PostgreDialect implements IDialect {
+    // 忽略 ~~ 多数情况使用MySqlDialect
+
 
     @Override
     public DialectModel buildPaginationSql(String originalSql, long offset, long limit) {

@@ -38,6 +38,8 @@ import java.util.Map;
  * @since 2017-06-20
  */
 public abstract class PluginUtils {
+    // 作用: 插件工具类
+
     public static final String DELEGATE_BOUNDSQL_SQL = "delegate.boundSql.sql";
 
     /**
@@ -62,6 +64,7 @@ public abstract class PluginUtils {
         additionalParameters.forEach(boundSql::setAdditionalParameter);
     }
 
+    // 作用: 将Mybatis的BoundSql转换为MPBoundSql类型的
     public static MPBoundSql mpBoundSql(BoundSql boundSql) {
         return new MPBoundSql(boundSql);
     }
@@ -116,6 +119,12 @@ public abstract class PluginUtils {
      * {@link BoundSql}
      */
     public static class MPBoundSql {
+        // MPBoundSql的特点 -> 额外扩展填充一个 BoundSql的MetaObejct元素
+        // ❗️❗️❗️ -> 为什么要这样处理呢?
+        // 1. 首先我们需要自动BoundSql中的字段sql是final的不可变的
+        // 2. 以分页为例,我们需要分页查询的sql后面追加limit 1,10类似的语句 -> 就必须面对不得不修改修改BoundSql中sql值
+        // 3. MPBoundSql#sql(String) -> 借助MetaObject反射的能力去设置sql值
+        // 好处: 对于外界使用来说 -> 解耦,用户不用关心底层时是如何设置上去的哦
         private final MetaObject boundSql;
         private final BoundSql delegate;
 
@@ -124,10 +133,12 @@ public abstract class PluginUtils {
             this.boundSql = SystemMetaObject.forObject(boundSql);
         }
 
+        // 获取sql语句
         public String sql() {
             return delegate.getSql();
         }
 
+        // 通过MetaObject向deletegate中反射设置新的sql -> [❗️❗️❗️ MPBoundSql提供的最重要的能力]
         public void sql(String sql) {
             boundSql.setValue("sql", sql);
         }

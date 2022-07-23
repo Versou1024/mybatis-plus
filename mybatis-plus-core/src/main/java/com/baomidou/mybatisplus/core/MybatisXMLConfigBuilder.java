@@ -53,6 +53,13 @@ import java.util.Properties;
  * @since 2017-01-04
  */
 public class MybatisXMLConfigBuilder extends BaseBuilder {
+    // 命名:
+    // Mybatis XMLConfigBuilder = Mybatis的XMLConfigBuidler
+
+    // 特点:
+    // 没有继承XMLConfigBuilder,而是从 XMLConfigBuilder copy 过来, 使用自己的 MybatisConfiguration 而不是 Configuration [唯一的不同点]
+
+    // 所以:基本没啥好关注的源码 -> 请直接看mybatis-3项目中对MybatisXMLConfigBuilder的源码注释吧
 
     private boolean parsed;
     private final XPathParser parser;

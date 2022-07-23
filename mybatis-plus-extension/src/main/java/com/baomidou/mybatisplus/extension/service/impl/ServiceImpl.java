@@ -50,14 +50,19 @@ public class ServiceImpl<M extends BaseMapper<T>, T> implements IService<T> {
 
     protected Log log = LogFactory.getLog(getClass());
 
+    // Mapper接口 -- 需要实现BaseMapper -- 即泛型M对象
+    // 使用Autowrited -- 注解 [牛逼: 我们需需要知道一点,那就是Spring是可以分析出M的参数化实际类型,然后去ioc容器中对应的Mapper]
+    // 所以在我们的Mapper接口上我们都会使用 @Repository  注解哦 [❗️❗️❗️]
     @Autowired
     protected M baseMapper;
+    // 而Mapper仅仅是一个接口,无法实例化为对象哦 -> 需要借助Mybatis的能力构造Mapper接口的代理对象
 
     @Override
     public M getBaseMapper() {
         return baseMapper;
     }
 
+    // PO类的class -- 即泛型T
     protected Class<T> entityClass = currentModelClass();
 
     @Override
@@ -65,6 +70,7 @@ public class ServiceImpl<M extends BaseMapper<T>, T> implements IService<T> {
         return entityClass;
     }
 
+    // Mapper接口的class -- 即泛型M
     protected Class<M> mapperClass = currentMapperClass();
 
     /**
@@ -80,10 +86,12 @@ public class ServiceImpl<M extends BaseMapper<T>, T> implements IService<T> {
     }
 
     protected Class<M> currentMapperClass() {
+        // 使用反射工具 -- 获取超类的泛型信息接口 -- 一般this就是用户自己的XxxServiceImpl extends ServiceImpl
         return (Class<M>) ReflectionKit.getSuperClassGenericType(this.getClass(), ServiceImpl.class, 0);
     }
 
     protected Class<T> currentModelClass() {
+        // 使用反射工具
         return (Class<T>) ReflectionKit.getSuperClassGenericType(this.getClass(), ServiceImpl.class, 1);
     }
 

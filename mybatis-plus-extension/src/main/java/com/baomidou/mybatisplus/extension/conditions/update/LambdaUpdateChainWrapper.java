@@ -32,6 +32,8 @@ import com.baomidou.mybatisplus.extension.conditions.AbstractChainWrapper;
 public class LambdaUpdateChainWrapper<T> extends AbstractChainWrapper<T, SFunction<T, ?>, LambdaUpdateChainWrapper<T>, LambdaUpdateWrapper<T>>
     implements ChainUpdate<T>, Update<LambdaUpdateChainWrapper<T>, SFunction<T, ?>> {
 
+    // 忽略~~ 实际上整个设计模式和 LambdaQueryChainWrapper 类似
+
     private final BaseMapper<T> baseMapper;
 
     public LambdaUpdateChainWrapper(BaseMapper<T> baseMapper) {

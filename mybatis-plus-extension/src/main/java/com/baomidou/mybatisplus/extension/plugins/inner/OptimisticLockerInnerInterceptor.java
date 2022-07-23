@@ -57,6 +57,8 @@ import java.util.Map;
  */
 @SuppressWarnings({"unchecked"})
 public class OptimisticLockerInnerInterceptor implements InnerInterceptor {
+    // 乐观锁插件
+
     private RuntimeException exception;
 
     public void setException(RuntimeException exception) {

@@ -35,6 +35,9 @@ import java.io.IOException;
 @MappedTypes({Object.class})
 @MappedJdbcTypes(JdbcType.VARCHAR)
 public class JacksonTypeHandler extends AbstractJsonTypeHandler<Object> {
+    // 使用 Jackson 完成
+    // note:  javaType为Object, jdbcType为VARCHAR
+
     private static ObjectMapper OBJECT_MAPPER;
     private final Class<?> type;
 

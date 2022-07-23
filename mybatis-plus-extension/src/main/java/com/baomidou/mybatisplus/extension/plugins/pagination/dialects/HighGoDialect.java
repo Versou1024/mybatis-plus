@@ -9,6 +9,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.DialectModel;
  * @since 2021-04-06
  */
 public class HighGoDialect implements IDialect {
+    // 忽略 ~~ 多数情况使用MySqlDialect
+
 
     @Override
     public DialectModel buildPaginationSql(String originalSql, long offset, long limit) {

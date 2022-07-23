@@ -29,15 +29,26 @@ import java.util.Map;
  * @since 2016-01-23
  */
 public class DialectFactory {
+    // 位于: extension.plugins.pagination
+
+    // 作用:
+    // 根据DbType生成对应的Dialect方言出来
+
+    // 缓存 以DbType为key,以IDialect方言为value
     private static final Map<DbType, IDialect> DIALECT_ENUM_MAP = new EnumMap<>(DbType.class);
 
     public static IDialect getDialect(DbType dbType) {
+        // note: ❗️❗️❗️
+        // 默认情况下: 大部分的方言都是内置好了的
+
+        // 1. 尝试缓存命中
         IDialect dialect = DIALECT_ENUM_MAP.get(dbType);
         if (null == dialect) {
+            // 2.1 缓存命中失败,检查DbType是否为DbType.OTHER,是的话,抛出异常
             if (dbType == DbType.OTHER) {
                 ExceptionUtils.mpe("%s database not supported.", dbType.getDb());
             }
-            // mysql same type
+            // 3.1mybatis-plus 内置的DbTyoe值 -> MySqlDialect mysql的方言
             else if (dbType == DbType.MYSQL
                 || dbType == DbType.MARIADB
                 || dbType == DbType.GBASE
@@ -50,12 +61,13 @@ public class DialectFactory {
                 || dbType == DbType.CSIIDB) {
                 dialect = new MySqlDialect();
             }
-            // oracle same type
+            // 3.2  mybatis-plus 内置的DbTyoe值 -> OracleDialect oracle的方言
             else if (dbType == DbType.ORACLE
                 || dbType == DbType.DM
                 || dbType == DbType.GAUSS) {
                 dialect = new OracleDialect();
             }
+            // .......... 忽略~~
             // postgresql same type
             else if (dbType == DbType.POSTGRE_SQL
                 || dbType == DbType.H2

@@ -89,29 +89,40 @@ public class IllegalSQLInnerInterceptor extends JsqlParserSupport implements Inn
 
     @Override
     public void beforePrepare(StatementHandler sh, Connection connection, Integer transactionTimeout) {
+        // StatementHandler.prepare(Connection, Integer) 操作前置处理
+
         PluginUtils.MPStatementHandler mpStatementHandler = PluginUtils.mpStatementHandler(sh);
         MappedStatement ms = mpStatementHandler.mappedStatement();
         SqlCommandType sct = ms.getSqlCommandType();
+        // 1. INSERT语句、添加了拦截忽略注解 [ @InterceptorIgnore(illegalSql = "1") ]、存在SQL解析缓存时不执行校验
         if (sct == SqlCommandType.INSERT || InterceptorIgnoreHelper.willIgnoreIllegalSql(ms.getId())) return;
         BoundSql boundSql = mpStatementHandler.boundSql();
         String originalSql = boundSql.getSql();
         logger.debug("检查SQL是否合规，SQL:" + originalSql);
         String md5Base64 = EncryptUtils.md5Base64(originalSql);
+        // 2.查询缓存是否已校验过
         if (cacheValidResult.contains(md5Base64)) {
             logger.debug("该SQL已验证，无需再次验证，，SQL:" + originalSql);
             return;
         }
+        // 3. ❗️❗️❗️ 进行验证
         parserSingle(originalSql, connection);
-        //缓存验证结果
+        // 4.缓存验证结果
         cacheValidResult.add(md5Base64);
     }
 
+    // processSelect(..)：where条件校验，根据SQL类型，进入不同的校验方法。
     @Override
     protected void processSelect(Select select, int index, String sql, Object obj) {
         PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
+        // 1. 拿到Where表达式
         Expression where = plainSelect.getWhere();
+        // 2.❗️❗️❗️ 查询操作没有where条件 -> 直接报错
         Assert.notNull(where, "非法SQL，必须要有where条件");
+
+        // 3.1 获取from的table值
         Table table = (Table) plainSelect.getFromItem();
+        // 3.2 获取join的join值
         List<Join> joins = plainSelect.getJoins();
         validWhere(where, table, (Connection) obj);
         validJoins(joins, table, (Connection) obj);
@@ -143,14 +154,21 @@ public class IllegalSQLInnerInterceptor extends JsqlParserSupport implements Inn
      * @param expression ignore
      */
     private void validExpression(Expression expression) {
-        //where条件使用了 or 关键字
+        // where条件使用了 or 关键字
+
+        // 1.1 ❗️❗️❗️or表达式
         if (expression instanceof OrExpression) {
             OrExpression orExpression = (OrExpression) expression;
             throw new MybatisPlusException("非法SQL，where条件中不能使用【or】关键字，错误or信息：" + orExpression.toString());
-        } else if (expression instanceof NotEqualsTo) {
+        }
+        // 1.2 ❗️❗️❗️not表达式
+        else if (expression instanceof NotEqualsTo) {
             NotEqualsTo notEqualsTo = (NotEqualsTo) expression;
             throw new MybatisPlusException("非法SQL，where条件中不能使用【!=】关键字，错误!=信息：" + notEqualsTo.toString());
-        } else if (expression instanceof BinaryExpression) {
+        }
+        // 1.3 二元表达式的基本类，即具有左成员和右成员的表达式，它们依次是表达式。
+        // -> 比如 and \ or
+        else if (expression instanceof BinaryExpression) {
             BinaryExpression binaryExpression = (BinaryExpression) expression;
             // TODO 升级 jsqlparser 后待实现
 //            if (binaryExpression.isNot()) {
@@ -164,7 +182,9 @@ public class IllegalSQLInnerInterceptor extends JsqlParserSupport implements Inn
                 SubSelect subSelect = (SubSelect) binaryExpression.getRightExpression();
                 throw new MybatisPlusException("非法SQL，where条件中不能使用子查询，错误子查询SQL信息：" + subSelect.toString());
             }
-        } else if (expression instanceof InExpression) {
+        }
+        // 1.4 ❗️❗️❗️ in表达式 -> 不允许有子查询
+        else if (expression instanceof InExpression) {
             InExpression inExpression = (InExpression) expression;
             if (inExpression.getRightItemsList() instanceof SubSelect) {
                 SubSelect subSelect = (SubSelect) inExpression.getRightItemsList();
@@ -234,6 +254,7 @@ public class IllegalSQLInnerInterceptor extends JsqlParserSupport implements Inn
      * @param connection ignore
      */
     private void validWhere(Expression expression, Table table, Connection connection) {
+        // 验证where条件的字段，是否有not、or等等，并且where的第一个字段，必须使用索引
         validWhere(expression, table, null, connection);
     }
 

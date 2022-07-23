@@ -32,11 +32,14 @@ import java.util.function.Function;
  * @since 2020-07-31
  */
 public abstract class InterceptorIgnoreHelper {
+    // 位于: com.baomidou.mybatisplus.core.plugins = core模块的plugins下
 
-    /**
-     * SQL 解析缓存
-     * key 可能是 mappedStatement 的 ID,也可能是 class 的 name
-     */
+    // 作用:
+    // 与Mapper接口的上的@InterceptorIgnore注解有关
+
+    // SQL 解析缓存
+    // value 是 @InterceptorIgnore 对应的 InterceptorIgnoreCache
+    // 当@InterceptorCache在mapper接口上时,key是class的name -> 当@InterceptorCache在mapper方法上时,是mappedStatement的ID,
     private static final Map<String, InterceptorIgnoreCache> INTERCEPTOR_IGNORE_CACHE = new ConcurrentHashMap<>();
 
     /**
@@ -47,8 +50,10 @@ public abstract class InterceptorIgnoreHelper {
      * @param mapperClass Mapper Class
      */
     public synchronized static InterceptorIgnoreCache initSqlParserInfoCache(Class<?> mapperClass) {
+        // 1. 获取mapper接口上的@InterceptorIgnore注解
         InterceptorIgnore ignore = mapperClass.getAnnotation(InterceptorIgnore.class);
         if (ignore != null) {
+            // 2. 非空的的情况下,以mapperClass.getName()为key,以对应interceptorIgnore注解构建一个InterceptorIgnoreCache,然后存入缓存
             String key = mapperClass.getName();
             InterceptorIgnoreCache cache = buildInterceptorIgnoreCache(key, ignore);
             INTERCEPTOR_IGNORE_CACHE.put(key, cache);
@@ -66,15 +71,25 @@ public abstract class InterceptorIgnoreHelper {
      * @param method           Method
      */
     public static void initSqlParserInfoCache(InterceptorIgnoreCache mapperAnnotation, String mapperClassName, Method method) {
+        // 1. 拿到mapepr方法上的@InterceptorIgnore注解
+        // note: 注意和传递进来的形参 mapperAnnotation 区分开来 -> 形参mapperAnnotation还是从mapper接口的类上查找的@InterceptorIgnore注解转换的InterceptorIgnoreCache
         InterceptorIgnore ignore = method.getAnnotation(InterceptorIgnore.class);
+        // 2.
+        // key  = mapperClassName + "." + 方法名 -> 方法上和注解上都存在@InterceptorIgnore
+        // name = mapperClassName + "#" + 方法名 -> 只有方法上存在@InterceptorIgnore
         String key = mapperClassName.concat(StringPool.DOT).concat(method.getName());
         String name = mapperClassName.concat(StringPool.HASH).concat(method.getName());
+        // 3. mapepr方法上存在@InterceptorIgnore注解 -> [就忽略类上的@InterceptorIgnore注解对应的mapperAnnotation]
         if (ignore != null) {
+            // 3.1 根据方法上@InterceptorIgnore注解的构建InterceptorIgnoreCache [此刻没有进行缓存操作哦]
             InterceptorIgnoreCache methodCache = buildInterceptorIgnoreCache(name, ignore);
+            // 3.2 当类上的@InterceptorIgnore不存在时, 缓存, 不过此时的缓存的key是 mapperClassName + "." + 方法名 ❗️❗️❗️
             if (mapperAnnotation == null) {
                 INTERCEPTOR_IGNORE_CACHE.put(key, methodCache);
                 return;
             }
+            // 3.3 当类上的@InterceptorIgnore存在时存入缓存, 不过此时的缓存的key是 mapperClassName + "#" + 方法名 ❗️❗️❗️
+            // 且由于类上的@InterceptorIgnore也存在,需要通过chooseCache(..)进行 -> 类上和方法上的@InterceptorIgnore互补
             INTERCEPTOR_IGNORE_CACHE.put(key, chooseCache(mapperAnnotation, methodCache));
         }
     }
@@ -120,6 +135,10 @@ public abstract class InterceptorIgnoreHelper {
     }
 
     private static InterceptorIgnoreCache chooseCache(InterceptorIgnoreCache mapper, InterceptorIgnoreCache method) {
+        // 类上和方法上的@InterceptorIgnore都存在时,进行一个互补操作
+        // 互补规则: 以@InterceptorIgnore.tenantLine()属性为例,
+        //  a:如果方法和类上都存在对@InterceptorIgnore.tenantLine()属性的设置,那么就以方法上的为准
+        //  b:如果方法上没有对@InterceptorIgnore.tenantLine()属性设置,为默认的""即对应Boolean就是null,但类上的注解对该属性有设置为true或者false,那就以类上的为准
         return InterceptorIgnoreCache.builder()
             .tenantLine(chooseBoolean(mapper.getTenantLine(), method.getTenantLine()))
             .dynamicTableName(chooseBoolean(mapper.getDynamicTableName(), method.getDynamicTableName()))
@@ -132,6 +151,8 @@ public abstract class InterceptorIgnoreHelper {
     }
 
     private static InterceptorIgnoreCache buildInterceptorIgnoreCache(String name, InterceptorIgnore ignore) {
+        // 构建: InterceptorIgnoreCache -> 主要将@InterceptorIgnore的String格式转为Boolean格式,存入到InterceptorIgnoreCache
+
         return InterceptorIgnoreCache.builder()
             .tenantLine(getBoolean("tenantLine", name, ignore.tenantLine()))
             .dynamicTableName(getBoolean("dynamicTableName", name, ignore.dynamicTableName()))
@@ -144,6 +165,8 @@ public abstract class InterceptorIgnoreHelper {
     }
 
     private static Boolean getBoolean(String node, String name, String value) {
+        //  @InterceptorIgnore 中属性都是String格式的,主要是用来支持true 和 false , 1 和 0 , on 和 off 的String格式作为开关
+
         if (StringUtils.isBlank(value)) {
             return null;
         }
@@ -157,6 +180,9 @@ public abstract class InterceptorIgnoreHelper {
     }
 
     private static Map<String, Boolean> getOthers(String name, String[] values) {
+        // 注意: 其他非内置的插件是否需要被忽略 -> 就需要通过 @InterceptorCache.others 属性指定
+        // 格式:  "key"+"@"+可选项[false,true,1,0,on,off] 例如: "xxx@1" 或 "xxx@true" 或 "xxx@on"
+        // 比如: 有一个plugins为TestInterceptor -> 那么通过 Test@true 或者 Test@1 等等表示需要忽略这个 插件plugin
         if (ArrayUtils.isEmpty(values)) {
             return null;
         }
@@ -175,6 +201,8 @@ public abstract class InterceptorIgnoreHelper {
      * mapper#method 上的注解 优先级大于 mapper 上的注解
      */
     private static Boolean chooseBoolean(Boolean mapper, Boolean method) {
+        // mapper#method 上的@InterceptorIgnoe注解 优先级大于 mapper 上的@InterceptorIgnoe注解
+
         if (mapper == null && method == null) {
             return null;
         }
@@ -185,6 +213,12 @@ public abstract class InterceptorIgnoreHelper {
     }
 
     private static Map<String, Boolean> chooseOthers(Map<String, Boolean> mapper, Map<String, Boolean> method) {
+        // 类上和方法上的@InterceptorIgnore都存在时,对@InterceptorIgnore.other()进行一个互补操作
+        // 规则:
+        // 1. 类上和方法上的@InterceptorIgnore.other()都是空的,返回null
+        // 2. 类上和方法上的@InterceptorIgnore.other()有一个是空的,另一个非空,就以非空的为主
+        // 3.  类上和方法上的@InterceptorIgnore.other()都不是空的
+        //      3.1 遍历类上和方法的@InterceptorIgnore.other()合并 -> 对于key冲突的,首先以方法的上为准
         boolean emptyMapper = CollectionUtils.isEmpty(mapper);
         boolean emptyMethod = CollectionUtils.isEmpty(method);
         if (emptyMapper && emptyMethod) {
@@ -209,6 +243,12 @@ public abstract class InterceptorIgnoreHelper {
     @Data
     @Builder
     public static class InterceptorIgnoreCache {
+        // 简述:
+        // 内部类 作为@InterceptorIgnore接口的属性封装类
+
+        // 作用:
+        // @InterceptorIgnore中属性都是String格式的,主要是用来支持true 和 false , 1 和 0 , on 和 off 的String格式作为开关
+        // InterceptorIgnoreCache类的作用就是封装为Boolean格式,以帮助直接使用
         private Boolean tenantLine;
         private Boolean dynamicTableName;
         private Boolean blockAttack;

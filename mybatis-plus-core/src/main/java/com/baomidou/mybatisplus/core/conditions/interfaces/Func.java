@@ -28,6 +28,26 @@ import java.util.function.Consumer;
  */
 @SuppressWarnings("unchecked")
 public interface Func<Children, R> extends Serializable {
+    // 位于: com.baomidou.mybatisplus.core.conditions.interfaces = core模块下的coditions.interface包
+    // 常见的查询条件封装
+
+    // isNull(..)
+    // isNotNull(..)
+    // in(..)
+    // notin(..)
+    // inSql(..)
+    // gtSql(..)
+    // ltSql(..)
+    // leSql(..)
+    // notInSql(..)
+    // groupBy(..)
+    // orderByAsc(..)
+    // orderByDesc(..)
+
+    // 泛型:
+    // R 表示列的类型,一般都是String,表示列名
+    // Children 一般都是AbstractWrapper的子类
+
 
     /**
      * ignore
@@ -151,8 +171,10 @@ public interface Func<Children, R> extends Serializable {
     /**
      * 字段 IN ( sql语句 )
      * <p>!! sql 注入方式的 in 方法 !!</p>
-     * <p>例1: inSql("id", "1, 2, 3, 4, 5, 6")</p>
-     * <p>例2: inSql("id", "select id from table where id &lt; 3")</p>
+     * <p>例1: inSql("id", "1, 2, 3, 4, 5, 6") </p>
+     * <p>例2: inSql("id", "select id from table where id &lt; 3")
+     * <br> 结果:  id in ( select id from table where id &lt; 3 )
+     * </p>
      *
      * @param condition 执行条件
      * @param column    字段
@@ -164,7 +186,9 @@ public interface Func<Children, R> extends Serializable {
     /**
      * 字段 &gt; ( sql语句 )
      * <p>例1: gtSql("id", "1, 2, 3, 4, 5, 6")</p>
-     * <p>例1: gtSql("id", "select id from table where name = 'JunJun'")</p>
+     * <p>例1: gtSql("id", "select id from table where name = 'JunJun'")
+     * <br>结果: id &gt (select id from table where name = 'JunJun')
+     * </p>
      *
      * @param condition
      * @param column
@@ -191,6 +215,8 @@ public interface Func<Children, R> extends Serializable {
      * @return
      */
     Children geSql(boolean condition, R column, String inValue);
+    // geSql("id", "select id from table where name = 'JunJun'")
+    // id >= (select id from table where name = 'JunJun')
 
     /**
      * ignore
@@ -210,6 +236,8 @@ public interface Func<Children, R> extends Serializable {
      * @return
      */
     Children ltSql(boolean condition, R column, String inValue);
+    // ltSql("id", "select id from table where name = 'JunJun'")
+    // id < (select id from table where name = 'JunJun')
 
     /**
      * ignore
@@ -229,6 +257,8 @@ public interface Func<Children, R> extends Serializable {
      * @return
      */
     Children leSql(boolean condition, R column, String inValue);
+    // leSql("id", "select id from table where name = 'JunJun'")
+    // id <= select id from table where name = 'JunJun'
 
     /**
      * ignore
@@ -256,6 +286,8 @@ public interface Func<Children, R> extends Serializable {
      * @return children
      */
     Children notInSql(boolean condition, R column, String inValue);
+    //  notInSql("id", "select id from table where id < 3")
+    // 表示: id not in (select id from table where id < 3)
 
     /**
      * 分组：GROUP BY 字段, ...
@@ -266,6 +298,8 @@ public interface Func<Children, R> extends Serializable {
      * @return children
      */
     Children groupBy(boolean condition, R column);
+    // groupBy("id")
+    // 表示:  group by id
 
     default Children groupBy(R column) {
         return groupBy(true, column);
@@ -280,6 +314,8 @@ public interface Func<Children, R> extends Serializable {
      * @return children
      */
     Children groupBy(boolean condition, List<R> columns);
+    // groupBy(Arrays.asList("id", "name"))
+    // 表示: GROUP BY id,name
 
     default Children groupBy(List<R> columns) {
         return groupBy(true, columns);
@@ -305,6 +341,8 @@ public interface Func<Children, R> extends Serializable {
     default Children orderByAsc(boolean condition, R column) {
         return orderBy(condition, true, column);
     }
+    // orderByAsc(true, "id")
+    // 表示: order by id asc
 
     default Children orderByAsc(R column) {
         return orderByAsc(true, column);
@@ -321,6 +359,8 @@ public interface Func<Children, R> extends Serializable {
     default Children orderByAsc(boolean condition, List<R> columns) {
         return orderBy(condition, true, columns);
     }
+    // orderByAsc(true, Arrays.asList("id", "name"))
+    // 表示: ORDER BY id asc,name asc
 
     default Children orderByAsc(List<R> columns) {
         return orderByAsc(true, columns);
@@ -413,6 +453,8 @@ public interface Func<Children, R> extends Serializable {
     default Children having(String sqlHaving, Object... params) {
         return having(true, sqlHaving, params);
     }
+    //  having("sum(age) > {0}", 10)
+    //  表示: HAVING sum(age) > 10
 
     /**
      * HAVING ( sql语句 )

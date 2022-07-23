@@ -26,6 +26,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.DialectModel;
  * @since 2016-11-10
  */
 public class SQLServer2005Dialect implements IDialect {
+    // 忽略 ~~ 多数情况使用MySqlDialect
+
 
     private static String getOrderByPart(String sql) {
         String loweredString = sql.toLowerCase();

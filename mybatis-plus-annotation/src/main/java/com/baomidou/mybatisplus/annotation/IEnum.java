@@ -24,6 +24,7 @@ import java.io.Serializable;
  * @since 3.4.0
  */
 public interface IEnum<T extends Serializable> {
+    // 自定义枚举接口
 
     /**
      * 枚举数据库存储值

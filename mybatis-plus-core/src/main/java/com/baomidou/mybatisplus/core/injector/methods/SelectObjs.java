@@ -28,6 +28,7 @@ import org.apache.ibatis.mapping.SqlSource;
  * @since 2018-04-06
  */
 public class SelectObjs extends AbstractMethod {
+    // 忽略~~
 
     public SelectObjs() {
         super(SqlMethod.SELECT_OBJS.getMethod());

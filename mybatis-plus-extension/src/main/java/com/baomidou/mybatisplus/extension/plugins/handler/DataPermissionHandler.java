@@ -24,6 +24,8 @@ import net.sf.jsqlparser.expression.Expression;
  * @since 3.4.1 +
  */
 public interface DataPermissionHandler {
+    // 命名:
+    // DataPermissionHandler = 数据权限处理器
 
     /**
      * 获取数据权限 SQL 片段
@@ -33,4 +35,6 @@ public interface DataPermissionHandler {
      * @return JSqlParser 条件表达式
      */
     Expression getSqlSegment(Expression where, String mappedStatementId);
+    // 获取数据权限 SQL 片段
+    // 待执行 SQL Where 条件表达式 |  Mybatis MappedStatement Id 根据该参数可以判断具体执行方法
 }

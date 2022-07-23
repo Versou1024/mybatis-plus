@@ -69,11 +69,48 @@ import java.util.stream.Stream;
  * @since 2017-01-04
  */
 public class MybatisMapperAnnotationBuilder extends MapperAnnotationBuilder {
+    // ❗️❗️❗️
+    // 位于: com.baomidou.mybatisplus.core = 直接位于core项目下
 
+    // 作用:
+    // 继承MapperAnnotationBuilder, 只重写了 MapperAnnotationBuilder.parse 和 #getReturnType 没有XML配置文件注入基础CRUD方法
+    // 关键点: 虽然是继承MapperAnnotationBuilder,但实际上直接复制了MapperAnnotationBuilder的所有方法 ->
+    // -> 其中对 MapperAnnotationBuilder.parse 和 #getReturnType 进行了改造
+    // -> 帮助 mybatis-plus 自动注入MP方法的
+    // -> 也就是 用户Mapper接口实现了BaseMapper接口,BaseMapper中的接口时如何自动注入到Mybatis中的勒?
+
+    // 核心的处理逻辑 -> 极其复杂
+    // 当前类生效的时机:
+    // 1. 在 MybatisPlusAutoConfiguration#registerBeanDefinitions(..) 方法中注入了 MapperScannerConfigurer 的bean
+    //      1.1 指定了: MapperScannerConfigurer 扫描的类路径在启动类下,同时扫描的mapper接口必须是标注有@Mapper注解
+    // 2. MapperScannerConfigurer作为一个BeanFactoryPostProcessor
+    //      2.0 其方法MapperScannerConfigurer#postProcessBeanDefinitionRegistry(..) -> 会在解析完所有的BeanDefinition后执行
+    //      2.1 其中创建一个: ClassPathMapperScanner,并调用其scan(..)方法开始扫描mapper接口 [其中1.1的步骤定制了如何扫描的规则哦,以及扫描的路径]
+    //      2.2 在扫描并注册了BeanDefinition后,执行ClassPathMapperScanner#doScan()中
+    //          2.2.1 作用将对于导入的Mapper接口最终定义的BeanDefinition替换为MapperFactoryBean类型的
+    //          2.2.2 ...
+    //          2.2.3 其中有一个局部变量为: explicitFactoryUsed 用来表示是否有使用指定的 SqlSessionTeamplte 或者 SqlSessionFactory
+    //                如果没有使用的话就会将标记: definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
+    //               按照类型填充 -- 当没有指定sqlSessionTemplate或sqlSessionFactory就回去ioc容器中自动根据类型匹配哦
+    // 3. 上面注册的BeanDefinition在实例化时 -> 实际触发的就是 MapperFactoryBean#getObject() 方法
+    //      3.1 getObject() -> 触发: getSqlSession().getMapper(this.mapperInterface)
+    //      3.2 上面的getSqlSession() -> 就是拿到 SqlSessionTemplate -> 所以执行的就是: SqlSessionTemplate#getMapper(..)
+    //      3.3 SqlSessionTemplate#getMapper(..) -> 是通过SqlSessionTemplate持有的 sqlSessionFactory.getConfiguration().getMapper(type, this) 完成的
+    // 4. ❗️❗️❗️ Very Good -> 我们在 MybatisPlusAutoConfiguration#SqlSessionFactory(..)注入的bean就是SqlSessionFactory
+            // 4.1 在2.2.3步骤,我们直到3.3步骤的SqlSessionFactory是从ioc容器中自动获取的,那其实就是这里4.0注入的进入 [当然4.0的步骤并不是在3.0执行的]
+    // 5. 4步骤创建的SqlSessionFactory是MyabtisSqlSessionFactory的, 其中的Configuration就是MybatisConfiguration. 调用其getMapper(...) -> 委托给 MybatisMapperRegistry 去完成的
+    // 6. 当Configuration 是 MybatisConfiguration 时,  MapperRegistry 就是 MybatisMapperRegistry
+    // 7. 然后在 MybatisMapperRegistry#addMapper(..) 方法中会去使用当前类 ->
+    //      MybatisMapperAnnotationBuilder parser = new MybatisMapperAnnotationBuilder(config, type);
+    //      parser.parse();
+
+    // statement注解类型
     private static final Set<Class<? extends Annotation>> statementAnnotationTypes = Stream
         .of(Select.class, Update.class, Insert.class, Delete.class, SelectProvider.class, UpdateProvider.class,
             InsertProvider.class, DeleteProvider.class)
         .collect(Collectors.toSet());
+
+    // 三大类: Configuration/MapperBuilderAssistant/需要解析的Mapper接口的type
 
     private final Configuration configuration;
     private final MapperBuilderAssistant assistant;
@@ -97,31 +134,47 @@ public class MybatisMapperAnnotationBuilder extends MapperAnnotationBuilder {
             assistant.setCurrentNamespace(mapperName);
             parseCache();
             parseCacheRef();
+            // ❗️❗️❗️ 以下代码就是 MybatisMapperAnnotationBuilder 在 MapperAnnotationBuilder.parse() 上扩展的出来的新起点
+            // 1. 解析mapper接口即type上是否有@InterceptorIgnore,有的话,构建一个InterceptorIgnoreCache并缓存在InterceptorIgnoreHelper.INTERCEPTOR_IGNORE_CACHE静态变量中
             InterceptorIgnoreHelper.InterceptorIgnoreCache cache = InterceptorIgnoreHelper.initSqlParserInfoCache(type);
+            // 2. 开始遍历Mapper接口中的所有方法
             for (Method method : type.getMethods()) {
+                // 2.1 方法不是桥接方法 && 方法不是默认方法 -> 就允许生成MapperStatement,否则跳过
                 if (!canHaveStatement(method)) {
                     continue;
                 }
-                if (getAnnotationWrapper(method, false, Select.class, SelectProvider.class).isPresent()
-                    && method.getAnnotation(ResultMap.class) == null) {
+                // 2.2 检查Mapper接口中当前遍历的方法上是否有Select注解 || SelectProvider注解, 且 方法上没有@ResultMap注解
+                if (getAnnotationWrapper(method, false, Select.class, SelectProvider.class).isPresent() && method.getAnnotation(ResultMap.class) == null) {
+                    // 2.2.1 有select注解或者SelectProvider注解,但没有@ResultMap注解,需要解析方法的返回类型的ResultMap的id值 [使用的非常少~~] -> [这里不做更多阐述,请见 mybatis 项目的源码吧]
                     parseResultMap(method);
                 }
+                // 3. 注解过滤缓存
                 try {
-                    // TODO 加入 注解过滤缓存
                     InterceptorIgnoreHelper.initSqlParserInfoCache(cache, mapperName, method);
-                    parseStatement(method);
+                    parseStatement(method); // ❗️❗️❗复习一个️
                 } catch (IncompleteElementException e) {
-                    // TODO 使用 MybatisMethodResolver 而不是 MethodResolver
+                    // TODO 对于元素不完成导致的异常,包装为MybatisMethodResolver后加入到Configuration.incompleteMethod集合中
+                    // TODO 后续在 Configuration#buildAllStatements(..) 中再次通过 MybatisMethodResolver#resolve(..) 尝试重新解析一遍
+                    // TODO 触发 -> MybatisMapperAnnotationBuilder.parseStatement(..)
                     configuration.addIncompleteMethod(new MybatisMethodResolver(this, method));
                 }
             }
-            // TODO 注入 CURD 动态 SQL , 放在在最后, because 可能会有人会用注解重写sql
+            // 4. ❗️❗️❗️重点
+            // 注入 CURD 动态 SQL , 放在在最后, because 可能会有人会用注解重写sql
             try {
-                // https://github.com/baomidou/mybatis-plus/issues/3038
+                // 4.1 检查mapper接口是否为需要解析MP自动SQL注入的接口
+                // 简述GlobalConfigUtils.isSupperMapperChildren(configuration, type)过程:
+                // a. 获取 Configuration 对应的 GlobalConfig , 其中 GlobalConfig.superMapperClass 字段值 -> 默认是Mapper
+                // b. 如果mapper接口实现了Mapper标志性接口 -> 就返回true,表示需要
+                // ❗️❗️❗️ 其中用户最常用的BaseMapper接口,其 BaseMapper extends Mapper -> 所以会执行 parserInjector()
                 if (GlobalConfigUtils.isSupperMapperChildren(configuration, type)) {
                     parserInjector();
                 }
             } catch (IncompleteElementException e) {
+                // TODO 不同于上面的IncompleteElementException -> 这里是由于MP解析加载自己的CRUD方法失败出现的未完成的异常
+                // TODO 这里包装为InjectorResolver后加入到Configuration.incompleteMethod集合中
+                // TODO 后续在 Configuration#buildAllStatements(..) 中再次通过 InjectorResolver#resolve(..) 尝试重新解析一遍
+                // TODO 触发 -> MybatisMapperAnnotationBuilder.parserInjector(..)
                 configuration.addIncompleteMethod(new InjectorResolver(this));
             }
         }
@@ -129,11 +182,14 @@ public class MybatisMapperAnnotationBuilder extends MapperAnnotationBuilder {
     }
 
     void parserInjector() {
+        // 1. 拿到 Configuration 对应的 GlobalConfig 其中的 SQLInjector  ~~ [99%的情况都是: DefaultSqlInjector ] -> 用户可以重写 SqlInjector哦 [注入属于自己的方法哦]
+        // 2. 调用 SQLInjector#inspectInject()
         GlobalConfigUtils.getSqlInjector(configuration).inspectInject(assistant, type);
     }
 
     private boolean canHaveStatement(Method method) {
-        // issue #237
+        // 方法并不是桥接方法且方法不是默认方法 -> 就允许生成MapperStatement
+
         return !method.isBridge() && !method.isDefault();
     }
 
@@ -218,20 +274,32 @@ public class MybatisMapperAnnotationBuilder extends MapperAnnotationBuilder {
     }
 
     private String parseResultMap(Method method) {
+        // 为某个标记有@Select或@SelectProvider方法,但没有标注@ResultMap注解的方法
+
+        // 1. 获取返回类型/@ConstructorArgs/@Results/@TypeDiscriminator
         Class<?> returnType = getReturnType(method);
         Arg[] args = method.getAnnotationsByType(Arg.class);
         Result[] results = method.getAnnotationsByType(Result.class);
         TypeDiscriminator typeDiscriminator = method.getAnnotation(TypeDiscriminator.class);
+        // 2. 为指定的method生成resultMap的Name
         String resultMapId = generateResultMapName(method);
+        // 3. 开始适配
         applyResultMap(resultMapId, returnType, args, results, typeDiscriminator);
         return resultMapId;
     }
 
     private String generateResultMapName(Method method) {
+        // 为某个标记有@Select或@SelectProvider方法,但没有标注@ResultMap注解的方法 -> 生成ResultMap的名字也就是id
+
+        // 1. 使用 type.getName() + "." + @Results.id() 作为 ResultMap 的 name
         Results results = method.getAnnotation(Results.class);
         if (results != null && !results.id().isEmpty()) {
             return type.getName() + StringPool.DOT + results.id();
         }
+        // 2.
+        // 步骤1不满足时,使用下面的方式
+        // type.getName() + "." + method.getName() + "-" + "形参名1" + "-" + " 形参名2" == 多个参数
+        // type.getName() + "." + method.getName() + "-void" = 单个参数
         StringBuilder suffix = new StringBuilder();
         for (Class<?> c : method.getParameterTypes()) {
             suffix.append(StringPool.DASH);
@@ -245,11 +313,15 @@ public class MybatisMapperAnnotationBuilder extends MapperAnnotationBuilder {
 
     private void applyResultMap(String resultMapId, Class<?> returnType, Arg[] args, Result[] results, TypeDiscriminator discriminator) {
         List<ResultMapping> resultMappings = new ArrayList<>();
+        // 1. 将@ConstructorArgs中的Arg[]适配为ResultMapping加入到resultMappings
         applyConstructorArgs(args, returnType, resultMappings);
+        // 2. 将@Results中的Result[]适配为ResultMapping加入到resultMappings
         applyResults(results, returnType, resultMappings);
+        // 3. 创建鉴别器
         Discriminator disc = applyDiscriminator(resultMapId, returnType, discriminator);
         // TODO add AutoMappingBehaviour
         assistant.addResultMap(resultMapId, returnType, null, disc, resultMappings, null);
+        // 4. 最终创建出来的: DiscriminatorResultMaps
         createDiscriminatorResultMaps(resultMapId, returnType, discriminator);
     }
 
@@ -641,14 +713,16 @@ public class MybatisMapperAnnotationBuilder extends MapperAnnotationBuilder {
     }
 
     @SafeVarargs
-    private final Optional<AnnotationWrapper> getAnnotationWrapper(Method method, boolean errorIfNoMatch,
-                                                                   Class<? extends Annotation>... targetTypes) {
+    private final Optional<AnnotationWrapper> getAnnotationWrapper(Method method, boolean errorIfNoMatch, Class<? extends Annotation>... targetTypes) {
         return getAnnotationWrapper(method, errorIfNoMatch, Arrays.asList(targetTypes));
     }
 
     private Optional<AnnotationWrapper> getAnnotationWrapper(Method method, boolean errorIfNoMatch,
                                                              Collection<Class<? extends Annotation>> targetTypes) {
+        // 1. 拿到databaseId
         String databaseId = configuration.getDatabaseId();
+        // 2. 遍历目标注解targetTypes -> method如果存在对应的这个注解targetType -> 转换为 new AnnotationWrapper(Annotation)
+        // -> 然后以创建的AnnotationWrapper::getDataBaseId为key,AnnotationWrapper本身为value -> 出现冲突即有相同的DataBaseId时就报出异常吧
         Map<String, AnnotationWrapper> statementAnnotations = targetTypes.stream()
             .flatMap(x -> Arrays.stream(method.getAnnotationsByType(x))).map(AnnotationWrapper::new)
             .collect(Collectors.toMap(AnnotationWrapper::getDatabaseId, x -> x, (existing, duplicate) -> {
@@ -656,6 +730,7 @@ public class MybatisMapperAnnotationBuilder extends MapperAnnotationBuilder {
                     existing.getAnnotation(), duplicate.getAnnotation(),
                     method.getDeclaringClass().getName() + StringPool.DOT + method.getName()));
             }));
+        // 3. 拿到符合当前databaseId的AnnotationWrapper
         AnnotationWrapper annotationWrapper = null;
         if (databaseId != null) {
             annotationWrapper = statementAnnotations.get(databaseId);
@@ -663,8 +738,9 @@ public class MybatisMapperAnnotationBuilder extends MapperAnnotationBuilder {
         if (annotationWrapper == null) {
             annotationWrapper = statementAnnotations.get(StringPool.EMPTY);
         }
+        // 4. errorIfNoMatch为true即要求没有匹配的对应的注解时,直接爆出异常吧
         if (errorIfNoMatch && annotationWrapper == null && !statementAnnotations.isEmpty()) {
-            // Annotations exist, but there is no matching one for the specified databaseId
+            // 注解存在，但指定的 databaseId 没有匹配的注解
             throw new BuilderException(
                 String.format(
                     "Could not find a statement annotation that correspond a current database or default statement on method '%s.%s'. Current database id is [%s].",
@@ -675,12 +751,23 @@ public class MybatisMapperAnnotationBuilder extends MapperAnnotationBuilder {
 
     @Getter
     private class AnnotationWrapper {
+        // 简述:
+        // 内部类 注解包装器 -> 持有
+        // Annotation注解 \ 经过DatabaseIdProvider生成的DataSourceId \ Sql语句类型SqlCommandType
+
+        // 作用:
+        // 封装Mapper接口的上 @select @selectProvider @insert 等等注解
+
         private final Annotation annotation;
         private final String databaseId;
         private final SqlCommandType sqlCommandType;
 
         AnnotationWrapper(Annotation annotation) {
+            // 1. 传入mapper接口上的指定注解 -- 例如 @Select || @SelectProvider
             this.annotation = annotation;
+            // 2. 确定: databaseId 与 sqlCommandType
+            // ❗️❗️❗ ️99%的情况 -> 我们都可以认为:dataBaseId为默认的 ""
+            // 除非用户指定,例如 @Select(.. , databaseId="1")
             if (annotation instanceof Select) {
                 databaseId = ((Select) annotation).databaseId();
                 sqlCommandType = SqlCommandType.SELECT;
@@ -706,6 +793,7 @@ public class MybatisMapperAnnotationBuilder extends MapperAnnotationBuilder {
                 databaseId = ((DeleteProvider) annotation).databaseId();
                 sqlCommandType = SqlCommandType.DELETE;
             } else {
+                // 3. 额外处理未知的sql语句
                 sqlCommandType = SqlCommandType.UNKNOWN;
                 if (annotation instanceof Options) {
                     databaseId = ((Options) annotation).databaseId();

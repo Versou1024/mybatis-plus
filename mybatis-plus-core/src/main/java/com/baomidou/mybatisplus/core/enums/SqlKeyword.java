@@ -28,6 +28,7 @@ import lombok.AllArgsConstructor;
  */
 @AllArgsConstructor
 public enum SqlKeyword implements ISqlSegment {
+    // SQL 保留关键字枚举
     AND("AND"),
     OR("OR"),
     NOT("NOT"),

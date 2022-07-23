@@ -44,7 +44,23 @@ public class SelectBatchByIds extends AbstractMethod {
 
     @Override
     public MappedStatement injectMappedStatement(Class<?> mapperClass, Class<?> modelClass, TableInfo tableInfo) {
+        // 对应: selectBatchIds(@Param(Constants.COLLECTION) Collection<? extends Serializable> idList)
+        // 对应: SqlMethod.SELECT_BATCH_BY_IDS
+        // sql脚本框架:
+        // <script>
+        // SELECT %s FROM %s WHERE %s IN (%s) %s
+        // </script>
         SqlMethod sqlMethod = SqlMethod.SELECT_BATCH_BY_IDS;
+        // 第1个%s: sqlSelectColumns(tableInfo, false) -> 查询出来的select
+            // idColumn as idProperty,column1 as property1, column2, column3 as property3
+        // 第2个%s: tableInfo.getTableName() -> 表名
+        // 第3个%s: tableInfo.getKeyColumn() -> 主键列名
+        // 第4个%s: SqlScriptUtils.convertForeach("#{item}", COLLECTION, null, "item", COMMA) -> 构建foreach标签
+            // <foreach collection="coll" item="item" separator=",">
+            //      #{item}
+            // <foreach>
+        // 第5个%s: 逻辑删除补充上的where条件
+            // AND deleted = 0
         SqlSource sqlSource = languageDriver.createSqlSource(configuration, String.format(sqlMethod.getSql(),
                 sqlSelectColumns(tableInfo, false), tableInfo.getTableName(), tableInfo.getKeyColumn(),
                 SqlScriptUtils.convertForeach("#{item}", COLLECTION, null, "item", COMMA),

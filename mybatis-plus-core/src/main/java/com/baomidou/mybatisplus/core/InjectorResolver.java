@@ -24,6 +24,10 @@ import org.apache.ibatis.builder.annotation.MethodResolver;
  * @since 2019-01-05
  */
 public class InjectorResolver extends MethodResolver {
+    // 和 MybatisMethodResolver 的区别是啥?
+    // MybatisMapperAnnotationBuilder.parserInjector(..) 抛出未完成的异常后 -> 将封装为InjectorResolver -> 待后续去处理 -> 使用MybatisMapperAnnotationBuilder.parserInjector(..)
+    // MybatisMapperAnnotationBuilder.parseStatement(..) 抛出未完成的异常后 -> 将封装为MybatisMethodResolver -> 待后续再去处理 -> 使用MybatisMapperAnnotationBuilder.parseStatement(..)
+    // 具体的不同: 请看 MybatisMapperAnnotationBuilder#parser(..) 的源码
 
     private final MybatisMapperAnnotationBuilder annotationBuilder;
 

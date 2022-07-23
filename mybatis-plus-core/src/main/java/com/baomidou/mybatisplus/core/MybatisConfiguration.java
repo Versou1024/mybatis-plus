@@ -54,10 +54,15 @@ import java.util.stream.Collectors;
  * @since 2016-01-23
  */
 public class MybatisConfiguration extends Configuration {
+    // 位于: com.baomidou.mybatisplus.core
+
+    // 配置:
+    // additional-spring-configuration-metadata.json 的 mybatis-plus.configuration 组
+
+
     private static final Log logger = LogFactory.getLog(MybatisConfiguration.class);
-    /**
-     * Mapper 注册
-     */
+
+    // TODO Mapper 注册 修改为  MybatisMapperRegistry
     protected final MybatisMapperRegistry mybatisMapperRegistry = new MybatisMapperRegistry(this);
 
     protected final Map<String, Cache> caches = new StrictMap<>("Caches collection");
@@ -88,6 +93,7 @@ public class MybatisConfiguration extends Configuration {
     public MybatisConfiguration() {
         super();
         this.mapUnderscoreToCamelCase = true;
+        // TODO: 这里使用默认的MybatisXMLLanguageDriver
         languageRegistry.setDefaultDriverClass(MybatisXMLLanguageDriver.class);
     }
 
@@ -115,6 +121,7 @@ public class MybatisConfiguration extends Configuration {
      */
     @Override
     public MapperRegistry getMapperRegistry() {
+        // TODO 使用自己的 MybatisMapperRegistry
         return mybatisMapperRegistry;
     }
 
@@ -123,6 +130,7 @@ public class MybatisConfiguration extends Configuration {
      */
     @Override
     public <T> void addMapper(Class<T> type) {
+        // TODO 使用自己的 MybatisMapperRegistry
         mybatisMapperRegistry.addMapper(type);
     }
 
@@ -133,6 +141,8 @@ public class MybatisConfiguration extends Configuration {
      * @param <T>
      */
     public <T> void addNewMapper(Class<T> type) {
+        // 新增注入新的 Mapper 信息，新增前会清理之前的缓存信息
+        // 暂无使用 可忽略~~ 可忽略~~ 可忽略~~
         this.removeMapper(type);
         this.addMapper(type);
     }
@@ -144,19 +154,21 @@ public class MybatisConfiguration extends Configuration {
      * @param <T>
      */
     public <T> void removeMapper(Class<T> type) {
-        // TODO
+        // 1. 获取当前Configuration对应的已注册MP的CRUD的Mapper接口
         Set<String> mapperRegistryCache = GlobalConfigUtils.getGlobalConfig(this).getMapperRegistryCache();
         final String mapperType = type.toString();
+        // 2. 已注册MP的CRUD方法的Mapper接口集合中包含当前需要解析的type
         if (mapperRegistryCache.contains(mapperType)) {
-            // 清空实体表信息映射信息
+            // 2.1 清空Mapper接口对应的实体表信息映射信息
+            // ReflectionKit.getSuperClassGenericType(type, Mapper.class, 0) 就是拿到 Mapper<T> 中泛型T实例化后的实体类信息
             TableInfoHelper.remove(ReflectionKit.getSuperClassGenericType(type, Mapper.class, 0));
 
-            // 清空 Mapper 缓存信息
+            // 2.2 从 mybatisMapperRegistry 与 loadedResources清空 Mapper 缓存信息
             this.mybatisMapperRegistry.removeMapper(type);
             this.loadedResources.remove(type.toString());
             mapperRegistryCache.remove(mapperType);
 
-            // 清空 Mapper 方法 mappedStatement 缓存信息
+            // 2.3 清空 Mapper 方法 mappedStatement 缓存信息
             final String typeKey = type.getName() + StringPool.DOT;
             Set<String> mapperSet = mappedStatements.entrySet().stream().filter(t -> t.getKey().startsWith(typeKey))
                 .map(t -> t.getKey()).collect(Collectors.toSet());
@@ -165,6 +177,9 @@ public class MybatisConfiguration extends Configuration {
             }
         }
     }
+
+    // 和自己的MybatisMapperRegistry相关的都加载重写一哈
+    // 改造为使用自己的MybatisMapperRegistry
 
     /**
      * 使用自己的 MybatisMapperRegistry
@@ -206,7 +221,7 @@ public class MybatisConfiguration extends Configuration {
     @Override
     public void setDefaultScriptingLanguage(Class<? extends LanguageDriver> driver) {
         if (driver == null) {
-            //todo 替换动态SQL生成的默认语言为自己的。
+            // TODO 替换动态SQL生成的默认语言为自己的。
             driver = MybatisXMLLanguageDriver.class;
         }
         getLanguageRegistry().setDefaultDriverClass(driver);

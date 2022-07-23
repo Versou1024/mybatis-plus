@@ -15,7 +15,10 @@
  */
 package com.baomidou.mybatisplus.core.toolkit;
 
+import org.apache.ibatis.annotations.Param;
+
 import java.io.Serializable;
+import java.util.Collection;
 
 /**
  * mybatis_plus 自用常量集中管理
@@ -24,6 +27,7 @@ import java.io.Serializable;
  * @since 2018-07-22
  */
 public interface Constants extends StringPool, Serializable {
+    // MP的自用常量池
 
     /**
      * project name
@@ -51,7 +55,7 @@ public interface Constants extends StringPool, Serializable {
     /**
      * 实体类
      */
-    String ENTITY = "et";
+    String ENTITY = "et"; // @Param(Constants.ENTITY) T entity
     /**
      * 实体类 带后缀 ==> .
      */
@@ -59,7 +63,7 @@ public interface Constants extends StringPool, Serializable {
     /**
      * wrapper 类
      */
-    String WRAPPER = "ew";
+    String WRAPPER = "ew"; // @Param(Constants.WRAPPER) Wrapper<T> queryWrapper
     /**
      * wrapper 类 带后缀 ==> .
      */
@@ -119,7 +123,7 @@ public interface Constants extends StringPool, Serializable {
     /**
      * columnMap
      */
-    String COLUMN_MAP = "cm";
+    String COLUMN_MAP = "cm"; // @Param(Constants.COLUMN_MAP) Map<String, Object> columnMap
     /**
      * columnMap.isEmpty
      */
@@ -127,7 +131,7 @@ public interface Constants extends StringPool, Serializable {
     /**
      * collection
      */
-    String COLLECTION = "coll";
+    String COLLECTION = "coll"; // @Param(Constants.COLLECTION) Collection<?> idList
     /**
      * list
      *

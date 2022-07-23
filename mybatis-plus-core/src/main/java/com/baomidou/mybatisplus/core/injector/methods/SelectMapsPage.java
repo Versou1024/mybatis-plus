@@ -30,6 +30,7 @@ import java.util.Map;
  * @since 2018-04-06
  */
 public class SelectMapsPage extends AbstractMethod {
+    // 忽略~~
 
     public SelectMapsPage() {
         super(SqlMethod.SELECT_MAPS_PAGE.getMethod());

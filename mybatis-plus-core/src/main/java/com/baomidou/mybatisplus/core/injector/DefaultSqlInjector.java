@@ -31,9 +31,16 @@ import static java.util.stream.Collectors.toList;
  * @since 2018-04-10
  */
 public class DefaultSqlInjector extends AbstractSqlInjector {
+    // 位于: core模块下的injector注入器包下
+
+    // 作用:
+    // 继承AbstractSqlInjector -> 实现 getMethodList(..) 提供需要注入的 ISqlInjector
 
     @Override
     public List<AbstractMethod> getMethodList(Class<?> mapperClass, TableInfo tableInfo) {
+        // 1. 获取mp内置的所有的AbstractMethod
+
+        // 1.1 通用的AbstractMethod
         Stream.Builder<AbstractMethod> builder = Stream.<AbstractMethod>builder()
             .add(new Insert())
             .add(new Delete())
@@ -46,6 +53,8 @@ public class DefaultSqlInjector extends AbstractSqlInjector {
             .add(new SelectObjs())
             .add(new SelectList())
             .add(new SelectPage());
+
+        // 1.2 实体类中是否有主键,有主键的情况下,添加适用于主键id上的AbstractMethod
         if (tableInfo.havePK()) {
             builder.add(new DeleteById())
                 .add(new DeleteBatchByIds())

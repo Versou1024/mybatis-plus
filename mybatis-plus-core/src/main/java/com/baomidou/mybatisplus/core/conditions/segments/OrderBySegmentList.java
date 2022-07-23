@@ -31,9 +31,12 @@ import static java.util.stream.Collectors.joining;
  */
 @SuppressWarnings("serial")
 public class OrderBySegmentList extends AbstractISegmentList {
+    // 命名:
+    // OrderBy Segment List  = Order By SQL 片段
 
     @Override
     protected boolean transformList(List<ISqlSegment> list, ISqlSegment firstSegment, ISqlSegment lastSegment) {
+        // 清除list的第一个 -> 清空list -> 空的
         list.remove(0);
         final List<ISqlSegment> sqlSegmentList = new ArrayList<>(list);
         list.clear();
@@ -46,6 +49,13 @@ public class OrderBySegmentList extends AbstractISegmentList {
         if (isEmpty()) {
             return EMPTY;
         }
+        // 1. 处理
+        // 分隔符为:   ","
+        // 前缀为:     " ORDER BY"
+        // 后缀为:     ""
+        // 每行数据为:  ISqlSegment::getSqlSegment
+
+        // 一般情况都是: GROUP BY column1 ASC,column2 DESC
         return this.stream().map(ISqlSegment::getSqlSegment).collect(joining(COMMA, SPACE + ORDER_BY.getSqlSegment() + SPACE, EMPTY));
     }
 }

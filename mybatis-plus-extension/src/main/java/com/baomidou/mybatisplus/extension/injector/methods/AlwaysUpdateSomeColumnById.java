@@ -44,6 +44,7 @@ import java.util.function.Predicate;
  */
 @SuppressWarnings("serial")
 public class AlwaysUpdateSomeColumnById extends AbstractMethod {
+    // 忽略~~
 
     /**
      * 字段筛选条件

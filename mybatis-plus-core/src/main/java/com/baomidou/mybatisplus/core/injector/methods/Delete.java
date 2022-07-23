@@ -44,15 +44,34 @@ public class Delete extends AbstractMethod {
     @Override
     public MappedStatement injectMappedStatement(Class<?> mapperClass, Class<?> modelClass, TableInfo tableInfo) {
         String sql;
+
         SqlMethod sqlMethod = SqlMethod.LOGIC_DELETE;
+        // 1. 逻辑删除
+        // 1.1 逻辑删除的语句
+        // <script>
+        // UPDATE %s %s %s %s
+        // </script>
         if (tableInfo.isWithLogicDelete()) {
+            // 第一个%s: tableInfo.getTableName() : 表名
+            // 第二个%s: sqlLogicSet(tableInfo) : 设置逻辑字段为逻辑删除值, 例如 set deleted = 1
+            // 第三个%s: sqlWhereEntityWrapper(true, tableInfo): <where>语句
+            // 第四个%s: sqlComment(): <if test=" ew != null and ew.sqlComment != null"> ${ew.sqlComment} </test>
             sql = String.format(sqlMethod.getSql(), tableInfo.getTableName(), sqlLogicSet(tableInfo),
                 sqlWhereEntityWrapper(true, tableInfo),
                 sqlComment());
             SqlSource sqlSource = languageDriver.createSqlSource(configuration, sql, modelClass);
             return addUpdateMappedStatement(mapperClass, modelClass, getMethod(sqlMethod), sqlSource);
-        } else {
+        }
+        // 2. 物理删除
+        // 2.1 物理删除的语句
+        // <script>
+        // DELETE FROM %s %s %s
+        // </script>
+        else {
             sqlMethod = SqlMethod.DELETE;
+            // 第一个%s: tableInfo.getTableName() : 表名
+            // 第二个%s: sqlWhereEntityWrapper(true, tableInfo): <where>语句
+            // 第三个%s: sqlComment(): <if test=" ew != null and ew.sqlComment != null"> ${ew.sqlComment} </test>
             sql = String.format(sqlMethod.getSql(), tableInfo.getTableName(),
                 sqlWhereEntityWrapper(true, tableInfo),
                 sqlComment());

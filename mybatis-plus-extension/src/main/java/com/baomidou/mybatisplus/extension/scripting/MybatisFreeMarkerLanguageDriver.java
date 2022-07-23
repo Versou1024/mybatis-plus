@@ -29,6 +29,7 @@ import org.mybatis.scripting.freemarker.FreeMarkerLanguageDriverConfig;
  */
 @NoArgsConstructor
 public class MybatisFreeMarkerLanguageDriver extends FreeMarkerLanguageDriver {
+    // 忽略~~
 
     public MybatisFreeMarkerLanguageDriver(FreeMarkerLanguageDriverConfig driverConfig) {
         super(driverConfig);

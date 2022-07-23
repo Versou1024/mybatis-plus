@@ -24,6 +24,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.DialectModel;
  * @since 2016-11-10
  */
 public class DB2Dialect implements IDialect {
+    //
 
     @Override
     public DialectModel buildPaginationSql(String originalSql, long offset, long limit) {

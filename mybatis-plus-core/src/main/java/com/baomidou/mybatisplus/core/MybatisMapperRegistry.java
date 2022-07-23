@@ -33,9 +33,19 @@ import java.util.Map;
  * @since 2017-04-19
  */
 public class MybatisMapperRegistry extends MapperRegistry {
+    // 位于: 直接位于core模块下 -> Very 重要哦
+
+    // 作用:
+    // 继承Mybatis的MapperRegistry [拥有: Mapper接口注册表的管理能力 \ ]
+
 
     private final Configuration config;
+    // TODO 下面改动啦
+    // 原来的Mybatis的MapperRegistry的knowMappers是vlaue类型是: MapperProxyFactory
+    // 现在MybatisMapperRegistry改为: MybatisMapperProxyFactory
     private final Map<Class<?>, MybatisMapperProxyFactory<?>> knownMappers = new HashMap<>();
+    // TODO 上面改动啦
+
 
     public MybatisMapperRegistry(Configuration config) {
         super(config);
@@ -62,14 +72,14 @@ public class MybatisMapperRegistry extends MapperRegistry {
         return knownMappers.containsKey(type);
     }
 
-    /**
-     * 清空 Mapper 缓存信息
-     */
+    // TODO 下面改动啦
+    // 增加一个: 清空 Mapper 缓存信息 的方法 -> 原来的Myabtis框架没有该方法哦
     protected <T> void removeMapper(Class<T> type) {
-        // TODO
         knownMappers.entrySet().stream().filter(t -> t.getKey().getName().equals(type.getName()))
             .findFirst().ifPresent(t -> knownMappers.remove(t.getKey()));
     }
+    // TODO 上面改动啦
+
 
     @Override
     public <T> void addMapper(Class<T> type) {
@@ -77,7 +87,7 @@ public class MybatisMapperRegistry extends MapperRegistry {
             if (hasMapper(type)) {
                 // TODO 如果之前注入 直接返回
                 return;
-                // TODO 这里就不抛异常了
+                // TODO 这里就不抛异常了 -> 在原来的Mybatis的MapperRegistry中是抛出异常
 //                throw new BindingException("Type " + type + " is already known to the MapperRegistry.");
             }
             boolean loadCompleted = false;
@@ -87,7 +97,8 @@ public class MybatisMapperRegistry extends MapperRegistry {
                 // It's important that the type is added before the parser is run
                 // otherwise the binding may automatically be attempted by the
                 // mapper parser. If the type is already known, it won't try.
-                // TODO 这里也换成 MybatisMapperAnnotationBuilder 而不是 MapperAnnotationBuilder
+                // TODO 这里也换成 MybatisMapperAnnotationBuilder 而不是 MapperAnnotationBuilder -> ❗️❗️❗️❗️❗️❗️
+                // TODO 也是在这里完成对 BaseMapper的CRUD方法进行注册
                 MybatisMapperAnnotationBuilder parser = new MybatisMapperAnnotationBuilder(config, type);
                 parser.parse();
                 loadCompleted = true;

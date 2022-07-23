@@ -1,6 +1,8 @@
-# Auto Configure
+# Auto Configure -- 下面的类都将会自动导入哦
 org.springframework.boot.env.EnvironmentPostProcessor=\
   com.baomidou.mybatisplus.autoconfigure.SafetyEncryptProcessor
+# here -- 当使用@SpringBootApplication时内部有一个元注解@EnableAutoConfiguration就对应这里的key即org.springframework.boot.autoconfigure.EnableAutoConfiguration
+# 因此下面三个自动配置中心将会被自动导入到ioc容器中哦 -- 流弊[核心思想->请见SpringBoot的元am哦]
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
   com.baomidou.mybatisplus.autoconfigure.IdentifierGeneratorAutoConfiguration,\
   com.baomidou.mybatisplus.autoconfigure.MybatisPlusLanguageDriverAutoConfiguration,\

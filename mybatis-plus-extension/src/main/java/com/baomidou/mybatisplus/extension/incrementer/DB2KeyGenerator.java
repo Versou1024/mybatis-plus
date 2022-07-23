@@ -25,9 +25,20 @@ import com.baomidou.mybatisplus.core.incrementer.IKeyGenerator;
  * @since 2017-06-12
  */
 public class DB2KeyGenerator implements IKeyGenerator {
+    // com.baomidou.mybatisplus.extension.incrementer 主键生成策略
 
+    // @KeySequence(value = "SEQ_ORACLE_STRING_KEY", clazz = String.class)
+    //public class YourEntity {
+    //
+    //    @TableId(value = "ID_STR", type = IdType.INPUT)
+    //    private String idStr;
+    //
+    //}
+
+    // 那么这里传递进来的incrementerName就是SEQ_ORACLE_STRING_KEY
     @Override
     public String executeSql(String incrementerName) {
+        // DB2数据通过执行 values nextval for incrementerName 获取主键
         return "values nextval for " + incrementerName;
     }
 

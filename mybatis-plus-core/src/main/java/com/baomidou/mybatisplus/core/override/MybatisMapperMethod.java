@@ -43,6 +43,15 @@ import java.util.Optional;
  * @since 2018-06-09
  */
 public class MybatisMapperMethod {
+    // 位于: core模块下的override重写包
+
+    // 作用:
+    // 它代表的是一个Mapper接口中抽象公共的方法
+    // 它的MybatisMapperMethod#execute(..) -> 就代表着对应Mapper接口的非默认的Mapper方法的执行流程 ❗️❗️❗️
+
+    // 与 Mybatis的MapperMethod 的区别:
+    // 不同点都是用 TODO 标注出来啦
+
     private final MapperMethod.SqlCommand command;
     private final MapperMethod.MethodSignature method;
 
@@ -80,10 +89,11 @@ public class MybatisMapperMethod {
                 } else if (method.returnsCursor()) {
                     result = executeForCursor(sqlSession, args);
                 } else {
-                    // TODO 这里下面改了
+                    // TODO 这里下面改了 ❗️❗️❗️
+                    // 返回值如果是IPage的子类,就执行executeForIPage(sqlSession, args)
                     if (IPage.class.isAssignableFrom(method.getReturnType())) {
                         result = executeForIPage(sqlSession, args);
-                        // TODO 这里上面改了
+                        // TODO 这里上面改了 ❗️❗️❗️
                     } else {
                         Object param = method.convertArgsToSqlCommandParam(args);
                         result = sqlSession.selectOne(command.getName(), param);
@@ -107,8 +117,9 @@ public class MybatisMapperMethod {
         return result;
     }
 
-    @SuppressWarnings("all")
+    // TODO 这里下面改了 ❗️❗️❗️
     private <E> Object executeForIPage(SqlSession sqlSession, Object[] args) {
+        // 1. 找到IPage类型的请求参数
         IPage<E> result = null;
         for (Object arg : args) {
             if (arg instanceof IPage) {
@@ -116,12 +127,17 @@ public class MybatisMapperMethod {
                 break;
             }
         }
+        // 2. 如果返回值为IPage,但是请求参数没有IPage就报错 ❗️
         Assert.notNull(result, "can't found IPage for args!");
         Object param = method.convertArgsToSqlCommandParam(args);
+        // 3. 执行结果
         List<E> list = sqlSession.selectList(command.getName(), param);
+        // 4. 将结果回填到IPage中去
         result.setRecords(list);
         return result;
     }
+    // TODO 这里上面改了 ❗️❗️❗️
+
 
     private Object rowCountResult(int rowCount) {
         final Object result;

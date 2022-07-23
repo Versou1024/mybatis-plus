@@ -39,6 +39,11 @@ import java.util.Optional;
  * @since 2016-12-11
  */
 public class SqlRunner implements ISqlRunner, Closeable {
+    // 位于:  com.baomidou.mybatisplus.extension.toolkit
+
+    // 命名:
+    // Sql Runner = sql运行器
+    // ISqlRunner的唯一实现类
 
     private final Log log = LogFactory.getLog(SqlRunner.class);
     // 单例Query
@@ -49,6 +54,7 @@ public class SqlRunner implements ISqlRunner, Closeable {
     private Class<?> clazz;
 
     public SqlRunner() {
+        // SqlHelper.FACTORY 初始化是null值
         this.sqlSessionFactory = SqlHelper.FACTORY;
     }
 
@@ -238,6 +244,10 @@ public class SqlRunner implements ISqlRunner, Closeable {
      * 获取SqlSessionFactory
      */
     private SqlSessionFactory getSqlSessionFactory() {
+
+        // 1.
+        // a:如果clazz不为空,就调用GlobalConfigUtils.currentSessionFactory(Class<?>)创建一个SqlSessionFactory
+        // b:如果clazz为空,就使用默认的sqlSessionFactory
         return Optional.ofNullable(clazz).map(GlobalConfigUtils::currentSessionFactory).orElse(sqlSessionFactory);
     }
 

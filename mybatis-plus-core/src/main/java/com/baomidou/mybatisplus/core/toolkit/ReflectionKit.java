@@ -38,6 +38,8 @@ import static java.util.stream.Collectors.toMap;
  * @since 2016-09-22
  */
 public final class ReflectionKit {
+    // 反射工具 -- 掌握哦
+
     /**
      * class field cache
      */
@@ -93,7 +95,7 @@ public final class ReflectionKit {
      * @return Class
      */
     public static Class<?> getSuperClassGenericType(final Class<?> clazz, final Class<?> genericIfc, final int index) {
-        //update by noear @2021-09-03
+        // 获取 clazz 的超类 genericIfc 中的 泛型类型
         Class<?>[] typeArguments = GenericTypeUtils.resolveTypeArguments(ClassUtils.getUserClass(clazz), genericIfc);
         return null == typeArguments ? null : typeArguments[index];
     }

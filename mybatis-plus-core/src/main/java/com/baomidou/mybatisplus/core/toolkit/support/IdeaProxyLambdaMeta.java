@@ -13,6 +13,8 @@ import java.lang.reflect.Proxy;
  * Create by hcl at 2021/5/17
  */
 public class IdeaProxyLambdaMeta implements LambdaMeta {
+    // 在 IDEA 的 Evaluate 中执行的 Lambda 表达式元数据需要使用该类处理元数据
+
     private static final Field FIELD_MEMBER_NAME;
     private static final Field FIELD_MEMBER_NAME_CLAZZ;
     private static final Field FIELD_MEMBER_NAME_NAME;

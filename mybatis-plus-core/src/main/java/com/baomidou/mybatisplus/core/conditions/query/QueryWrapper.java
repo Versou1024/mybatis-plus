@@ -35,15 +35,14 @@ import java.util.function.Predicate;
  * @since 2018-05-25
  */
 @SuppressWarnings("serial")
-public class QueryWrapper<T> extends AbstractWrapper<T, String, QueryWrapper<T>>
-    implements Query<QueryWrapper<T>, T, String> {
+public class QueryWrapper<T> extends AbstractWrapper<T, String, QueryWrapper<T>> implements Query<QueryWrapper<T>, T, String> {
+    // 位于: com.baomidou.mybatisplus.core.conditions.query = core模块的condition.query包
 
-    /**
-     * 查询字段
-     */
+    // 查询字段
     private final SharedString sqlSelect = new SharedString();
 
     public QueryWrapper() {
+        // 推荐1:
         this(null);
     }
 
@@ -53,6 +52,7 @@ public class QueryWrapper<T> extends AbstractWrapper<T, String, QueryWrapper<T>>
     }
 
     public QueryWrapper(T entity, String... columns) {
+        // 推荐2: 指定实现entity的同时,自动本次查询select的columns
         super.setEntity(entity);
         super.initNeed();
         this.select(columns);
@@ -79,6 +79,9 @@ public class QueryWrapper<T> extends AbstractWrapper<T, String, QueryWrapper<T>>
 
     @Override
     public QueryWrapper<T> select(String... columns) {
+        // 直接指定select的查询字段
+        // 例: select("id", "name", "age") -> sqlSelect = id,name,age
+
         if (ArrayUtils.isNotEmpty(columns)) {
             this.sqlSelect.setStringValue(String.join(StringPool.COMMA, columns));
         }
@@ -87,6 +90,8 @@ public class QueryWrapper<T> extends AbstractWrapper<T, String, QueryWrapper<T>>
 
     @Override
     public QueryWrapper<T> select(Class<T> entityClass, Predicate<TableFieldInfo> predicate) {
+        // 间接指定select的查询字段 -> 使用predicate过滤entityClass实体类中需要查询的字段即可
+        // 例: select(Xxx.Class, i -> i.getProperty().startsWith("test")) -> select
         super.setEntityClass(entityClass);
         this.sqlSelect.setStringValue(TableInfoHelper.getTableInfo(getEntityClass()).chooseSelect(predicate));
         return typedThis;
@@ -94,6 +99,14 @@ public class QueryWrapper<T> extends AbstractWrapper<T, String, QueryWrapper<T>>
 
     @Override
     public String getSqlSelect() {
+        // 以BaseMapper注入的CRUD的方法为例 -> BaseMapper#selectList(@Param(Constants.WRAPPER) Wrapper<T> queryWrapper) -> 传递进去的是就是当前Wrapper
+        // 然后再 SelectList#injectMappedStatement(...) 中
+        // %s SELECT %s FROM %s %s %s %s
+            // 第二个%s:
+            // <choose>
+            // <when test=" ew != null and ew.sqlSelect != null"> ${ew.sqlSelect} </when>  [❗️❗️❗️ 也就是说如果QueryWrapper如果指定返回的列名,那么 ew.sqlSelect 就不为空,以此为对象]
+            // <otherwise> idColumn as idProperty,column1 as property1, column2, column3 as property3 </otherwise> [❗️❗️❗️ 如果QueryWrapper如果没有指定返回的列名,那就以当前BaseMapper对应的PO实体类确定]
+            // </choose>
         return sqlSelect.getStringValue();
     }
 

@@ -34,6 +34,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SharedString implements Serializable {
+    // 共享的String字符串
+
     private static final long serialVersionUID = -1536422416594422874L;
 
     /**

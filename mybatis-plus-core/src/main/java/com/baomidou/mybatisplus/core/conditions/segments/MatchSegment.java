@@ -33,6 +33,13 @@ import java.util.function.Predicate;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 public enum MatchSegment {
+    // 命名:
+    // Match Segment =  用来尝试匹配Sql片段的枚举类
+
+    // 比如:
+    // GROUP_BY 枚举常量用来检查 SQLSegment 是否为 SQLKeyword.GROUP_BY
+    // ...
+
     GROUP_BY(i -> i == SqlKeyword.GROUP_BY),
     ORDER_BY(i -> i == SqlKeyword.ORDER_BY),
     NOT(i -> i == SqlKeyword.NOT),

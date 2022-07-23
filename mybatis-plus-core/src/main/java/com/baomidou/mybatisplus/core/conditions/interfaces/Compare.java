@@ -27,6 +27,23 @@ import java.util.function.BiPredicate;
  * @since 2017-05-26
  */
 public interface Compare<Children, R> extends Serializable {
+    // 位于: com.baomidou.mybatisplus.core.conditions.interfaces = core模块下的coditions.interface包
+
+    // 作用: 查询条件的 比较值封装 -> 相比于Nested\Join\Func更加好理解
+    // Compare 就是决定Where关键字中指定列和指定值的比较方式而已
+
+    // allEq(..)        map 所有非空属性等于 =
+    // eq(..)           等于 =
+    // ne(..)           不等于 <>
+    // gt(..)           大于 >
+    // lt(..)           大于等于 >=
+    // le(..)           小于 <
+    // between(..)      BETWEEN 值1 AND 值2
+    // notBetween(..)   NOT BETWEEN 值1 AND 值2
+    // like(..)         LIKE '%值%'
+    // notLike(..)      NOT LIKE '%值%'
+    // likeLeft(..)     LIKE '%值'
+    // likeRight(..)    LIKE '值%'
 
     /**
      * ignore

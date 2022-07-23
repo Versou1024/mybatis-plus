@@ -35,12 +35,45 @@ import java.util.HashMap;
  * @since 2020-05-23
  */
 public class SafetyEncryptProcessor implements EnvironmentPostProcessor {
+    // 命名
+    // Safety Encrypt Processor = 安全加密处理器
+
+    // 起作用的原因:
+    // Spring.factories 中有一行:
+    // org.springframework.boot.env.EnvironmentPostProcessor = com.baomidou.mybatisplus.autoconfigure.SafetyEncryptProcessor
+    // 其实主要还是:
+    // SpringBoot下的
+    // class ConfigFileApplicationListener implements EnvironmentPostProcessor, SmartApplicationListener, Ordered
+    // 	    @Override
+    //	    public void onApplicationEvent(ApplicationEvent event) {
+    //	    	if (event instanceof ApplicationEnvironmentPreparedEvent) {
+    //              // 在 refresh ApplicationContext之前发布ApplicationEnvironmentPreparedEvent事件,允许用户自定义应用程序的Environment
+    //	    		onApplicationEnvironmentPreparedEvent((ApplicationEnvironmentPreparedEvent) event);
+    //	    	}
+    //	    	if (event instanceof ApplicationPreparedEvent) {
+    //	    		onApplicationPreparedEvent(event);
+    //	    	}
+    //	    }
+    //
+    //	    private void onApplicationEnvironmentPreparedEvent(ApplicationEnvironmentPreparedEvent event) {
+    //	    	List<EnvironmentPostProcessor> postProcessors = loadPostProcessors(); // 加载EnvironmentPostProcessor的bean出来
+    //	    	postProcessors.add(this);
+    //	    	AnnotationAwareOrderComparator.sort(postProcessors); // 对EnvironmentPostProcessor的bean排序
+    //	    	for (EnvironmentPostProcessor postProcessor : postProcessors) {
+    //              // 触发 EnvironmentPostProcessor#postProcessEnvironment(..)
+    //	    		postProcessor.postProcessEnvironment(event.getEnvironment(), event.getSpringApplication());
+    //	    	}
+    //	    }
+    //
+    //      List<EnvironmentPostProcessor> loadPostProcessors() {
+    //          // 为什么 spring.factories 的 EnvironmentPostProcessor.class 作为 key 生效的原因哦
+    //		    return SpringFactoriesLoader.loadFactories(EnvironmentPostProcessor.class, getClass().getClassLoader());
+    //	    }
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-        /**
-         * 命令行中获取密钥
-         */
+
+        // 1. 命令行中指定了mpw.key,就获取获取密钥
         String mpwKey = null;
         for (PropertySource<?> ps : environment.getPropertySources()) {
             if (ps instanceof SimpleCommandLinePropertySource) {
@@ -49,9 +82,8 @@ public class SafetyEncryptProcessor implements EnvironmentPostProcessor {
                 break;
             }
         }
-        /**
-         * 处理加密内容
-         */
+
+        // 2. 使用mpwKey处理加密内容 -> 要求:加密内容以 mpw: 开头才可以哦
         if (StringUtils.isNotBlank(mpwKey)) {
             HashMap<String, Object> map = new HashMap<>();
             for (PropertySource<?> ps : environment.getPropertySources()) {
@@ -68,7 +100,7 @@ public class SafetyEncryptProcessor implements EnvironmentPostProcessor {
                     }
                 }
             }
-            // 将解密的数据放入环境变量，并处于第一优先级上
+            // 3. 将解密的数据放入环境变量，并处于第一优先级上
             if (CollectionUtils.isNotEmpty(map)) {
                 environment.getPropertySources().addFirst(new MapPropertySource("custom-encrypt", map));
             }

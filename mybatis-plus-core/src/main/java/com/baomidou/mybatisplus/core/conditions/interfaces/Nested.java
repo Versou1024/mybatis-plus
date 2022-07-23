@@ -27,6 +27,16 @@ import java.util.function.Consumer;
  * @since 2017-05-26
  */
 public interface Nested<Param, Children> extends Serializable {
+    // 位于: com.baomidou.mybatisplus.core.conditions.interfaces = core模块下的coditions.interface包
+
+    // 作用: 查询条件 -> 封装嵌套的查询条件
+
+    // 包括:
+    // and(..)      AND 嵌套, and(i -> i.eq("name", "李白").ne("status", "活着"))
+    // or(..)       OR 嵌套, or(i -> i.eq("name", "李白").ne("status", "活着"))
+    // nested(..)   正常嵌套 不带 AND 或者 OR, nested(i -> i.eq("name", "李白").ne("status", "活着"))
+    // not(..)      not 嵌套, not(i -> i.eq("name", "李白").ne("status", "活着"))
+
 
     /**
      * ignore

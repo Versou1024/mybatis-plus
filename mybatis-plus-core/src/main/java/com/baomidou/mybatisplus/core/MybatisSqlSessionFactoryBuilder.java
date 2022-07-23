@@ -39,6 +39,10 @@ import java.util.Properties;
  */
 public class MybatisSqlSessionFactoryBuilder extends SqlSessionFactoryBuilder {
 
+    // MybatisSqlSessionFactoryBuilder -> 构建SqlSessionFactory -> SqlSessionFactory构建SqlSession实例
+    // 传递进来的Reader/InputStream都是针对Mybatis.xml
+    // 重写以下两个方法的目的: 替换为使用MybatisXMLConfigBuilder -> 两个方法并没有被 mybatis-plus-boot 项目自己使用到哦
+
     @SuppressWarnings("Duplicates")
     @Override
     public SqlSessionFactory build(Reader reader, String environment, Properties properties) {
@@ -77,11 +81,16 @@ public class MybatisSqlSessionFactoryBuilder extends SqlSessionFactoryBuilder {
         }
     }
 
-    // TODO 使用自己的逻辑,注入必须组件
+
+    // ❗️❗️❗️
+    // 当前方法会被 MybatisSqlSessionFactoryBean#getObject() 方法最终调用到哦
     @Override
     public SqlSessionFactory build(Configuration configuration) {
+        // 1. 获取 configuration 对应 GlobalConfig
         GlobalConfig globalConfig = GlobalConfigUtils.getGlobalConfig(configuration);
 
+        // 2.1 当GlobalConfig.getIdentifierGenerator()为空 -> 即用户没有向ioc容器注入IdentifierGenerator时
+        // 使用默认的 DefaultIdentifierGenerator [id生成器]
         final IdentifierGenerator identifierGenerator;
         if (null == globalConfig.getIdentifierGenerator()) {
             identifierGenerator = new DefaultIdentifierGenerator();
@@ -89,15 +98,19 @@ public class MybatisSqlSessionFactoryBuilder extends SqlSessionFactoryBuilder {
         } else {
             identifierGenerator = globalConfig.getIdentifierGenerator();
         }
+
+        // 2.2 向IdWorker设置id生成器
         IdWorker.setIdentifierGenerator(identifierGenerator);
 
+        // 2.3 默认关闭的 SqlRunner
         if (globalConfig.isEnableSqlRunner()) {
             new SqlRunnerInjector().inject(configuration);
         }
 
+        // 3. 调用  超类 SqlSessionFactoryBuilder.build(Configuration)
         SqlSessionFactory sqlSessionFactory = super.build(configuration);
 
-        // 缓存 sqlSessionFactory
+        // 4. 缓存 sqlSessionFactory
         globalConfig.setSqlSessionFactory(sqlSessionFactory);
 
         return sqlSessionFactory;

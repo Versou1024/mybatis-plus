@@ -30,6 +30,10 @@ import static java.util.stream.Collectors.joining;
  */
 @SuppressWarnings("serial")
 public class GroupBySegmentList extends AbstractISegmentList {
+    // 位于: com.baomidou.mybatisplus.core.conditions.segments
+
+    // 命名:
+    // GroupBy Segment List  = Group By SQL 片段
 
     @Override
     protected boolean transformList(List<ISqlSegment> list, ISqlSegment firstSegment, ISqlSegment lastSegment) {
@@ -42,6 +46,13 @@ public class GroupBySegmentList extends AbstractISegmentList {
         if (isEmpty()) {
             return EMPTY;
         }
+        // 1. 处理
+        // 分隔符为:   ","
+        // 前缀为:     "GROUP BY"
+        // 后缀为:     ""
+        // 每行数据为:  ISqlSegment::getSqlSegment
+
+        // 一般情况都是: GROUP BY column1,column2
         return this.stream().map(ISqlSegment::getSqlSegment).collect(joining(COMMA, SPACE + GROUP_BY.getSqlSegment() + SPACE, EMPTY));
     }
 }

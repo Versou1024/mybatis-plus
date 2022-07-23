@@ -26,7 +26,14 @@ import java.lang.reflect.Method;
  * @since 2019-01-05
  */
 public class MybatisMethodResolver extends MethodResolver {
+    // 位于: core模块
 
+    // 作用:
+    // 在MapperAnnotationBuilder#parser(..)解析过程中抛出IncompleteElementException异常时
+    // 包装解析的方法method,用来做解析的annotationBuilder
+    // MybatisMethodResolver 主要就是将 MapperAnnotationBuilder 替换为 MybatisMapperAnnotationBuilder
+
+    // TODO 将原先的 MapperAnnotationBuilder 替换为 MybatisMapperAnnotationBuilder
     private final MybatisMapperAnnotationBuilder annotationBuilder;
     private final Method method;
 
@@ -38,6 +45,7 @@ public class MybatisMethodResolver extends MethodResolver {
 
     @Override
     public void resolve() {
+        // 继续重新尝试解析
         annotationBuilder.parseStatement(method);
     }
 }

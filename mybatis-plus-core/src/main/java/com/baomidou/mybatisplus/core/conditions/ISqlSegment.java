@@ -26,6 +26,7 @@ import java.io.Serializable;
  */
 @FunctionalInterface
 public interface ISqlSegment extends Serializable {
+    // SQL 片段接口
 
     /**
      * SQL 片段

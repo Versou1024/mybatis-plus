@@ -32,6 +32,8 @@ import org.apache.ibatis.type.MappedTypes;
 @MappedTypes({Object.class})
 @MappedJdbcTypes(JdbcType.VARCHAR)
 public class GsonTypeHandler extends AbstractJsonTypeHandler<Object> {
+    // 使用 Gson 完成
+    // note:  javaType为Object, jdbcType为VARCHAR
     private static Gson GSON;
     private final Class<?> type;
 

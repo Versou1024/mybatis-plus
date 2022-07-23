@@ -25,6 +25,9 @@ import java.util.function.Predicate;
  * @since 2018-12-12
  */
 public interface Query<Children, T, R> extends Serializable {
+    // 位于: com.baomidou.mybatisplus.core.conditions.query = core模块的conditions.query包
+
+
 
     /**
      * ignore

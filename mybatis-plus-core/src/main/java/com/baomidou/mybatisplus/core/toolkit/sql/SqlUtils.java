@@ -38,6 +38,11 @@ import java.util.regex.Pattern;
 @SuppressWarnings("serial")
 public abstract class SqlUtils implements Constants {
 
+    // 以下实例都是满足pattern匹配的:
+    // {@12}
+    // {@user}
+    // {@user:name}
+    // {@user:city:name}
     private static final Pattern pattern = Pattern.compile("\\{@((\\w+?)|(\\w+?:\\w+?)|(\\w+?:\\w+?:\\w+?))}");
 
     /**
@@ -49,10 +54,13 @@ public abstract class SqlUtils implements Constants {
     public static String concatLike(Object str, SqlLike type) {
         switch (type) {
             case LEFT:
+                // 1. %str
                 return PERCENT + str;
             case RIGHT:
+                // 2. str%
                 return str + PERCENT;
             default:
+                // 3. %str%
                 return PERCENT + str + PERCENT;
         }
     }
@@ -68,21 +76,33 @@ public abstract class SqlUtils implements Constants {
 
     public static String replaceSqlPlaceholder(String sql, List<String> placeHolder, String escapeSymbol) {
         for (String s : placeHolder) {
+            // 1. 去掉开头的 '{@' 和结尾的 '}'
             String s1 = s.substring(2, s.length() - 1);
+            // 2. 确定第一个 ":" 的位置
             int i1 = s1.indexOf(COLON);
             String tableName;
             String alisa = null;
             String asAlisa = null;
+            // 3.1 占位符中没有":"
             if (i1 < 0) {
+                // 3.1.1 tableName 就是整个占位符
                 tableName = s1;
-            } else {
+            }
+            // 3.2 占位符中有":"
+            else {
+                // 以: {@user:city:name} 为例
+                // 3.2.1 user 就是 tableName
                 tableName = s1.substring(0, i1);
                 s1 = s1.substring(i1 + 1);
                 i1 = s1.indexOf(COLON);
                 if (i1 < 0) {
+                    // 如果以 {@user:city} 为例
+                    // alisa 即使city
                     alisa = s1;
                 } else {
+                    // 3.2.2 alisa 就是 city
                     alisa = s1.substring(0, i1);
+                    // 3.2.3 asAlisa 就是 name
                     asAlisa = s1.substring(i1 + 1);
                 }
             }
@@ -92,12 +112,15 @@ public abstract class SqlUtils implements Constants {
     }
 
     public static String getSelectBody(String tableName, String alisa, String asAlisa, String escapeSymbol) {
+        // 1. 拿到实体类对应的TableInfo
         TableInfo tableInfo = TableInfoHelper.getTableInfo(tableName);
         Assert.notNull(tableInfo, "can not find TableInfo Cache by \"%s\"", tableName);
+        // 2.  s 一般就是 idColumn as idProperty,column1 as property1, column2, column3 as property3
         String s = tableInfo.chooseSelect(TableFieldInfo::isSelect);
         if (alisa == null) {
             return s;
         }
+        // 3. 继续递归哦
         return getNewSelectBody(s, alisa, asAlisa, escapeSymbol);
     }
 

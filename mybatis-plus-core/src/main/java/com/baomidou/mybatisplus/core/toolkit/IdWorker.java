@@ -31,6 +31,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * @since 2016-08-01
  */
 public class IdWorker {
+    // 位于: com.baomidou.mybatisplus.core.toolkit = core模块的toolkit
 
     /**
      * 主机和进程的机器码
@@ -118,6 +119,7 @@ public class IdWorker {
      * 使用ThreadLocalRandom获取UUID获取更优的效果 去掉"-"
      */
     public static String get32UUID() {
+        // 使用ThreadLocalRandom获取UUID获取更优的效果 去掉"-"
         ThreadLocalRandom random = ThreadLocalRandom.current();
         return new UUID(random.nextLong(), random.nextLong()).toString().replace(StringPool.DASH, StringPool.EMPTY);
     }

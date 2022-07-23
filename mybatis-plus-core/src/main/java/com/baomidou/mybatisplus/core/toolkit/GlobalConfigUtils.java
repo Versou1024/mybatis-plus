@@ -38,10 +38,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2017-06-15
  */
 public class GlobalConfigUtils {
+    // 位于: com.baomidou.mybatisplus.core.toolkit
 
-    /**
-     * 缓存全局信息
-     */
+    // 命名:
+    // GlobalConfig Utils = 基于GlobalConfig的工具列
+
+    // 缓存全局信息
+    // 以Configuration的hash值作为key,Configuration对应的GlobalConfig为value
     private static final Map<String, GlobalConfig> GLOBAL_CONFIG = new ConcurrentHashMap<>();
 
     /**
@@ -50,9 +53,14 @@ public class GlobalConfigUtils {
      * @param clazz 实体类
      */
     public static SqlSessionFactory currentSessionFactory(Class<?> clazz) {
+        // 获取当前实体类clazz对应的SqlSessionFactory
+
+        // 1. 找到实体类clazz的TableInfo
         Assert.notNull(clazz, "Class must not be null");
         TableInfo tableInfo = TableInfoHelper.getTableInfo(clazz);
         Assert.notNull(tableInfo, ClassUtils.getUserClass(clazz).getName() + " Not Found TableInfoCache.");
+        // 2. 实际上 -> SqlSessionFactory 是全局固定的
+        // 一般可以认为是: 一个Configuration对应一个SqlSessionFactory
         return getGlobalConfig(tableInfo.getConfiguration()).getSqlSessionFactory();
     }
 
@@ -60,6 +68,7 @@ public class GlobalConfigUtils {
      * 获取默认 MybatisGlobalConfig
      */
     public static GlobalConfig defaults() {
+        // 获取默认的Mybatis的GlobalConfig
         return new GlobalConfig().setDbConfig(new GlobalConfig.DbConfig());
     }
 
@@ -109,10 +118,12 @@ public class GlobalConfigUtils {
     }
 
     public static Class<?> getSuperMapperClass(Configuration configuration) {
+        // 默认返回: Mapper接口的class -> note: BaseMapper extends Mapper
         return getGlobalConfig(configuration).getSuperMapperClass();
     }
 
     public static boolean isSupperMapperChildren(Configuration configuration, Class<?> mapperClass) {
+        // 检查mapper接口的mapperClass是否为
         return getSuperMapperClass(configuration).isAssignableFrom(mapperClass);
     }
 

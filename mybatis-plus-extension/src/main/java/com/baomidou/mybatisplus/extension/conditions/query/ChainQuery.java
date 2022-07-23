@@ -29,6 +29,12 @@ import java.util.Optional;
  * @since 2018-12-19
  */
 public interface ChainQuery<T> extends ChainWrapper<T> {
+    // 位于: extension模块的conditions.query封装查询方法包下
+
+    // 定义:
+    // ❗️❗️❗️ 它下面的方法都是默认方法哦 -> 基于 ChainWrapper#getBaseMapper() 和 ChainWrapper#getWrapper() 两个方法
+    // list() one() count() oneOpt() exists() page()
+
 
     /**
      * 获取集合

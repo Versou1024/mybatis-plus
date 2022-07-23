@@ -35,6 +35,11 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
 public @interface InterceptorIgnore {
+    // 作用:
+    // 作为内置插件的一些过滤规则,忽略默写过滤器
+    // 支持注解在Mapper接口上和Mapper接口中Method上 -> 二者同时存在则 Mapper.method 比 Mapper 优先级高
+    // 支持使用: true 和 false , 1 和 0 , on 和 off 的String格式作为开关
+    // 各属性返回 true 表示不走插件(在配置了插件的情况下,不填则默认表示 false)
 
     /**
      * 行级租户 {@link com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor}
@@ -78,4 +83,7 @@ public @interface InterceptorIgnore {
      * 例如: "xxx@1" 在 Mapper 上, 则 Method 上需要 "xxx@0"
      */
     String[] others() default {};
+    // 注意: 其他非内置的插件是否需要被忽略 -> 就需要通过 others 属性指定
+    // 格式:  "key"+"@"+可选项[false,true,1,0,on,off] 例如: "xxx@1" 或 "xxx@true" 或 "xxx@on"
+    // 比如: 有一个plugins为TestInterceptor -> 那么通过 Test@true 或者 Test@1 等等表示需要忽略这个 插件plugin
 }

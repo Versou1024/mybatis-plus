@@ -32,17 +32,20 @@ import java.util.function.Function;
  * @since 2018-10-31
  */
 public class DialectModel {
+    // 位于:
+    // extension模块下的plugins.pagination中
+
+    // 作用:
+    // 分页参数动态化所需 model
+
     private static final String FIRST_PARAM_NAME = "mybatis_plus_first";
     private static final String SECOND_PARAM_NAME = "mybatis_plus_second";
 
-    /**
-     * 分页方言 sql
-     */
+    // 带有方言特性的分页 sql
     @Getter
     private final String dialectSql;
-    /**
-     * 提供 Configuration
-     */
+
+    // 提供 Configuration
     private Configuration configuration;
     /**
      * 用 List<ParameterMapping> 消费第一个值
@@ -64,13 +67,13 @@ public class DialectModel {
      */
     private Consumer<Map<String, Object>> secondParamMapConsumer = i -> {
     };
-    /**
-     * 提供 第一个值
-     */
+
+    // 提供 第一个值
+    // 在MySQL就是offset
     private final long firstParam;
-    /**
-     * 提供 第二个值
-     */
+
+    // 提供 第二个值
+    // 在MySQL就是limit
     private final long secondParam;
 
     public DialectModel(String dialectSql) {
@@ -114,9 +117,18 @@ public class DialectModel {
      * @return this
      */
     public DialectModel setConsumer(boolean isFirstParam) {
+        // 设置消费 List  的方式
+
+        // 1.1 isFirstParam 为ture
         if (isFirstParam) {
+            // 1.1.1 ❗️❗️❗️
+            // 添加一个形参名为"mybatis_plus_first",java类型为Long的形参进去
             this.firstParamConsumer = i -> i.add(new ParameterMapping.Builder(configuration, FIRST_PARAM_NAME, long.class).build());
-        } else {
+        }
+        // 1.2 isFirstParam 为false
+        else {
+            // 1.2.1 形参名为"mybatis_plus_second"
+            // 添加一个形参名为"mybatis_plus_second",java类型为Long的形参进去
             this.secondParamConsumer = i -> i.add(new ParameterMapping.Builder(configuration, SECOND_PARAM_NAME, long.class).build());
         }
         this.setParamMapConsumer(isFirstParam);
@@ -130,6 +142,8 @@ public class DialectModel {
      * @return this
      */
     public DialectModel setConsumerChain() {
+        // 设置消费 List  的方式
+        // 不带下标的,两个值都有
         return setConsumer(true).setConsumer(false);
     }
 
@@ -146,6 +160,13 @@ public class DialectModel {
         Assert.notNull(parameterMappings, "parameterMappings must notNull !");
         Assert.notNull(additionalParameters, "additionalParameters must notNull !");
         this.configuration = configuration;
+        // ❗️❗️❗️
+        // 通过联动 -> DialectModel#setConsumerChain() 分别除非的 DialectModel#setParamMapConsumer(true) 与 DialectModel#setConsumer(true)
+        // 最终 -> 会向 parameterMappings 以及 additionalParameters 中额外添加以下参数
+        // parameterMappings 中 add(new ParameterMapping.Builder(configuration, FIRST_PARAM_NAME, long.class).build()
+        // parameterMappings 中 add(new ParameterMapping.Builder(configuration, SECOND_PARAM_NAME, long.class).build()
+        // additionalParameters 中 put(FIRST_PARAM_NAME, firstParam)
+        // additionalParameters 中 put(SECOND_PARAM_NAME, secondParam)
         this.firstParamConsumer.accept(parameterMappings);
         this.secondParamConsumer.accept(parameterMappings);
         this.firstParamMapConsumer.accept(additionalParameters);
@@ -156,9 +177,16 @@ public class DialectModel {
      * 设置消费 Map<String, Object> 的方式
      */
     private void setParamMapConsumer(boolean isFirstParam) {
+        // 设置消费 Map  的方式
+
+        // 1.1 isFirstParam 为true
         if (isFirstParam) {
+            // 1.1.1 以"mybatis_plus_first"为key,以firstParam值为value -> 到Map中 [❗️❗️❗️]
             this.firstParamMapConsumer = i -> i.put(FIRST_PARAM_NAME, firstParam);
-        } else {
+        }
+        // 1.2 isFirstParam 为false
+        else {
+            // 1.2.1 以"mybatis_plus_second"为key,以firstParam值为value -> 到Map中 [❗️❗️❗️]
             this.secondParamMapConsumer = i -> i.put(SECOND_PARAM_NAME, secondParam);
         }
     }

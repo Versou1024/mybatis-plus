@@ -34,6 +34,14 @@ package com.baomidou.mybatisplus.core.toolkit;
  * </ul>
  */
 public interface StringPool {
+    // String常量池，用于防止在代码中重复硬编码String文字。
+    // 由于这些是public static final ，它们将被 java 编译器内联，并且对此类的引用将被删除。
+    // 使用此池没有性能提升。阅读：https://java.sun.com/docs/books/jls/third_edition/html/lexical.html#3.10.5
+    //      同一包中同一类中的文字字符串表示对同一String对象的引用。
+    //      同一包中不同类中的文字字符串表示对同一String对象的引用。
+    //      不同包中不同类中的文字字符串同样表示对同一String对象的引用。
+    //      由常量表达式计算的字符串在编译时计算，然后将它们视为文字。
+    //      在运行时通过连接计算的字符串是新创建的，因此是不同的
 
     String AMPERSAND = "&";
     String AND = "and";

@@ -34,10 +34,12 @@ import static java.util.Locale.ENGLISH;
  * @since 2018-05-10
  */
 public final class LambdaUtils {
+    // 位于: com.baomidou.mybatisplus.core.toolkit = core模块下的toolkit包
 
-    /**
-     * 字段映射
-     */
+    // 字段映射
+    // 一级key: 实体类名
+    // 二级key: 字段名
+    // Value: 字段对应的ColumnCache
     private static final Map<String, Map<String, ColumnCache>> COLUMN_CACHE_MAP = new ConcurrentHashMap<>();
 
     /**
@@ -82,6 +84,11 @@ public final class LambdaUtils {
      * @param tableInfo 表信息
      */
     public static void installCache(TableInfo tableInfo) {
+        // 将传入的表信息加入缓存
+
+        // 1.
+        // 以 实体列的类名 作为key
+        // 以 Map<String,ColumnCache> 为value
         COLUMN_CACHE_MAP.put(tableInfo.getEntityType().getName(), createColumnCacheMap(tableInfo));
     }
 
@@ -92,6 +99,11 @@ public final class LambdaUtils {
      * @return 缓存 map
      */
     private static Map<String, ColumnCache> createColumnCacheMap(TableInfo info) {
+        // 构建: 缓存实体字段 MAP 信息
+        // 关键:
+        // LambdaUtils.formatKey(..) 将属性名大写作为key
+        // new ColumnCache(..) 将创建ColumnCache
+
         Map<String, ColumnCache> map;
 
         if (info.havePK()) {
@@ -114,6 +126,7 @@ public final class LambdaUtils {
      * @return 缓存 map
      */
     public static Map<String, ColumnCache> getColumnMap(Class<?> clazz) {
+        // 获取实体类 对应 ColumnMap
         return CollectionUtils.computeIfAbsent(COLUMN_CACHE_MAP, clazz.getName(), key -> {
             TableInfo info = TableInfoHelper.getTableInfo(clazz);
             return info == null ? null : createColumnCacheMap(info);

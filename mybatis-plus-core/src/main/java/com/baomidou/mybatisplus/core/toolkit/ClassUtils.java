@@ -32,6 +32,10 @@ import java.util.List;
  * @since 2017/07/08
  */
 public final class ClassUtils {
+    // 位于: com.baomidou.mybatisplus.core.toolkit
+
+    // 命名:
+    // Class Utils = 类工具
 
     private static ClassLoader systemClassLoader;
 

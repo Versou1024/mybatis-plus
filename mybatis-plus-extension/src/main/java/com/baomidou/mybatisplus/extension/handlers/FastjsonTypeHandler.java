@@ -33,8 +33,12 @@ import org.apache.ibatis.type.MappedTypes;
 @MappedTypes({Object.class})
 @MappedJdbcTypes(JdbcType.VARCHAR)
 public class FastjsonTypeHandler extends AbstractJsonTypeHandler<Object> {
+    // 使用 FastJson 完成
+    // note:  javaType为Object, jdbcType为VARCHAR
+
     private final Class<?> type;
 
+    // 可以为: 每一个对象type去创建一个TypeHandler哦
     public FastjsonTypeHandler(Class<?> type) {
         if (log.isTraceEnabled()) {
             log.trace("FastjsonTypeHandler(" + type + ")");

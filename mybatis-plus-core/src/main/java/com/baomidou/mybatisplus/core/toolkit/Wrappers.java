@@ -167,6 +167,7 @@ public final class Wrappers {
      * @see com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
      */
     private static class EmptyWrapper<T> extends QueryWrapper<T> {
+        // 一个空的QueryWrapper子类该类不包含任何条件
 
         private static final long serialVersionUID = -2515957613998092272L;
 

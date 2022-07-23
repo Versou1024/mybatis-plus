@@ -43,7 +43,49 @@ public class SelectPage extends AbstractMethod {
 
     @Override
     public MappedStatement injectMappedStatement(Class<?> mapperClass, Class<?> modelClass, TableInfo tableInfo) {
+        // 对应: BaseMapper#selectPage(P page, @Param(Constants.WRAPPER) Wrapper<T> queryWrapper) -> 传入page
+        // 对应:  SqlMethod.SELECT_PAGE
+        // 1. sql脚本结构:
+        // <script>
+        //      %s SELECT %s FROM %s %s %s %s
+        // </script>
         SqlMethod sqlMethod = SqlMethod.SELECT_PAGE;
+        // 2.
+        // 第1个%s: sqlFirst() ->
+            // <if test=" ew != null and ew.sqlFirst != null">
+            //      ${ew.sqlFirst}
+            // </test>
+        // 第2个%s: sqlSelectColumns(tableInfo, true) ->
+            // <choose>
+            // <when test=" ew != null and ew.sqlSelect != null"> ${ew.sqlSelect} </when>  [❗️❗️❗️ 也就是说如果QueryWrapper如果指定返回的列名,那么 ew.sqlSelect 就不为空,以此为对象]
+            // <otherwise> idColumn as idProperty,column1 as property1, column2, column3 as property3 </otherwise> [❗️❗️❗️ 如果QueryWrapper如果没有指定返回的列名,那就以PO实体类确定]
+            // </choose>
+        // 第3个%s: tableInfo.getTableName() -> 表名
+        // 第4个%s: sqlWhereEntityWrapper(true, tableInfo) ->
+            // <where>
+            //      <choose>
+            //          <when test=" ew != null">
+            //             <if test="ew.entity != null">
+            //                  <if test=" #{ew.entity. + keyProperty} != null "> keyColumn = #{ew.entity. + keyProperty} </if>
+            //                  <if test=" #{ew.entity.property1} != null " > AND column = #{ew.entity. + e1l} </if>   // ❗️❗️❗ <if>标签的test是收@TableField.whereStrategy()控制确定成立条件,AND后的比较逻辑是受到@TableField.condition()控制的️
+            //                  <if test=" #{ew.entity.property2} != null and #{ew.entity.property} != ''" > AND column != #{ew.entity. + el2} </if> //  [比如: condition为SQLCondition.EQUALS,whereStrategy=FieldStrategy.NOT_EMPTY]
+            //                  <if test=" #{ew.entity.property3} != null " > AND column LIKE concat('%',#{ew.entity. + el3},'%'} </if>   //  [比如: condition为SQLCondition.LIKE,whereStrategy=FieldStrategy.NOT_NULL]
+            //             <!if>
+            //             AND deleted = 0
+            //             <if test= "ew.sqlSegment != null and ew.sqlSegment != '' and "ew.nonEmptyOfNormal"" > AND ${ew.sqlSegment} </if>
+            //             <if test= "ew.sqlSegment != null and ew.sqlSegment != '' and "ew.emptyOfNormal"" > ${ew.sqlSegment} </if>
+            //          </when>
+            //          <otherwise> AND deleted = 0 </otherwise>
+            //      </choose>
+            // </where>
+        // 第5个%s: sqlOrderBy(tableInfo) ->
+             // <if test=" ew == null or ew.useAnnotationOrderBy">
+             //      ORDER BY column1 asc, column2 desc
+             // </if>
+        // 第6个%s: sqlComment() ->
+            // <if test=" ew != null and ew.sqlComment != null">
+            //      ${ew.sqlComment}
+            // </if>
         String sql = String.format(sqlMethod.getSql(), sqlFirst(), sqlSelectColumns(tableInfo, true),
             tableInfo.getTableName(), sqlWhereEntityWrapper(true, tableInfo), sqlOrderBy(tableInfo), sqlComment());
         SqlSource sqlSource = languageDriver.createSqlSource(configuration, sql, modelClass);

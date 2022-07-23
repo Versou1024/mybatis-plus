@@ -26,6 +26,14 @@ import lombok.AllArgsConstructor;
  */
 @AllArgsConstructor
 public enum WrapperKeyword implements ISqlSegment {
+    // WrapperKeyword.APPLY
+    // 作用:
+    // 作用与辨识
+    // 适用于 AbstractWrapper#apply(..)
+        //    public Children apply(boolean condition, String applySql, Object... values) {
+        //        return maybeDo(condition, () -> appendSqlSegments(APPLY,
+        //            () -> formatSqlMaybeWithParam(applySql, null, values)));
+
     /**
      * 只用作于辨识,不用于其他
      */

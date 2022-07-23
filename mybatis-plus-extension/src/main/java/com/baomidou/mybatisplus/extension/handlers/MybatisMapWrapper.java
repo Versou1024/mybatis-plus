@@ -33,6 +33,8 @@ public class MybatisMapWrapper extends MapWrapper {
         super(metaObject, map);
     }
 
+    // 继承MapWrapper -> 重写 findProperty(..) 方法
+    // 返回Map结果集，下划线转驼峰
     @Override
     public String findProperty(String name, boolean useCamelCaseMapping) {
         if (useCamelCaseMapping && !StringUtils.isCamel(name)) {

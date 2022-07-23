@@ -44,9 +44,12 @@ import org.springframework.context.annotation.Lazy;
  */
 @Lazy
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnClass(LanguageDriver.class)
+@ConditionalOnClass(LanguageDriver.class) // 必须存在Mybatis的LanguageDriver当前配置类才会被处理
 public class MybatisPlusLanguageDriverAutoConfiguration {
+    // 命名:
+    // MybatisPlus LanguageDriver AutoConfiguration = 自动配置类
 
+    // 用户可通过配置属性指定LanguageDriver -> mybatis-plus.scripting-language-driver
     private static final String CONFIGURATION_PROPERTY_PREFIX = Constants.MYBATIS_PLUS + ".scripting-language-driver";
 
     /**

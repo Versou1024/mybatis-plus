@@ -67,19 +67,41 @@ public class PropertyMapper {
      * @return 分组
      */
     public Map<String, Properties> group(String group) {
+        // 目前唯一调用处: MybatisPlusInterceptor#setProperties(..) 中 -> PropertyMapper#grpup("@")
+
+        // 1. 拿到委托的Properties类型的delegate中的key集合
         final Set<String> keys = keys();
+        // 2. 过滤出key的是以group开头的key集合 -> 目前group就是"@"
         Set<String> inner = keys.stream().filter(i -> i.startsWith(group)).collect(Collectors.toSet());
+        // 3. inner为空提前返回empty map
         if (CollectionUtils.isEmpty(inner)) {
             return Collections.emptyMap();
         }
+        // 4. 处理 -> 别名
+        // 比如 key有一个是 "@page" -> 那么inner就是@page,之后将page作为别名开始查询
         Map<String, Properties> map = CollectionUtils.newHashMap();
         inner.forEach(i -> {
+            // 4.1 为 inner= "@page" 新建一个 Properties()
             Properties p = new Properties();
+            // 4.2 inner 去掉"@"加上":",结果就是"page:"
             String key = i.substring(group.length()) + StringPool.COLON;
             int keyIndex = key.length();
+            // 4.3 委托的Properties类型的delegate中的key集合中以 :page:" 开头的属性集合哦,剔除"page:"后的value集合
             keys.stream().filter(j -> j.startsWith(key)).forEach(j -> p.setProperty(j.substring(keyIndex), delegate.getProperty(j)));
             map.put(delegate.getProperty(i), p);
         });
         return map;
+
+        // 举例:
+        // delegate的键值对情况如下:
+        // @page = com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor
+        // page:limit = 100
+        // page:size = 10
+        // page:current = 1
+        // ....
+        // 那么返回的结果 Map<String, Properties>
+        // 其中有一个Entry项的
+        //      key就是 "com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor"
+        //      value就是 limit = 100 size = 10 current = 1
     }
 }

@@ -26,4 +26,5 @@ import java.util.function.Function;
  */
 @FunctionalInterface
 public interface SFunction<T, R> extends Function<T, R>, Serializable {
+    // lambda表达式: 被用在 LambdaQueryWrapper 和 LambdaUpdateWrapper
 }

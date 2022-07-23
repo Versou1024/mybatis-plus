@@ -24,6 +24,8 @@ import org.apache.ibatis.builder.MapperBuilderAssistant;
  * @since 2016-07-24
  */
 public interface ISqlInjector {
+    // 命名:
+    // I Sql Injector = SQL自动注入器接口
 
     /**
      * 检查SQL是否注入(已经注入过不再注入)
@@ -32,4 +34,5 @@ public interface ISqlInjector {
      * @param mapperClass      mapper 接口的 class 对象
      */
     void inspectInject(MapperBuilderAssistant builderAssistant, Class<?> mapperClass);
+    // 当前方法用来为指定的 MapperClass 向 MapperBuilderAssistant 注入BaseMapper的CURD基本方法
 }

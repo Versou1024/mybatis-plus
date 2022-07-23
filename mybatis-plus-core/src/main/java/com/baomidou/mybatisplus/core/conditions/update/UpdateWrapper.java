@@ -37,9 +37,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class UpdateWrapper<T> extends AbstractWrapper<T, String, UpdateWrapper<T>>
     implements Update<UpdateWrapper<T>, String> {
 
-    /**
-     * SQL 更新字段内容，例如：name='1', age=2
-     */
+    // 相比于: QueryWrapper的不同点
+    // 有SQL 更新字段内容，例如：name='1', age=2
     private final List<String> sqlSet;
 
     public UpdateWrapper() {
@@ -77,14 +76,22 @@ public class UpdateWrapper<T> extends AbstractWrapper<T, String, UpdateWrapper<T
 
     @Override
     public UpdateWrapper<T> set(boolean condition, String column, Object val, String mapping) {
+        // SQL SET 字段
+        // 例: set("name", "老李头")
+        // 例: set("name", "")--->数据库字段值变为空字符串
+        // 例: set("name", null)--->数据库字段值变为null
         return maybeDo(condition, () -> {
+            // sql 就是 #{ew.paramNameValuePairs.MPGENVAL1}
             String sql = formatParam(mapping, val);
+            // 结果就是: column_name = #{ew.paramNameValuePairs.MPGENVAL1}
             sqlSet.add(column + Constants.EQUALS + sql);
         });
     }
 
     @Override
     public UpdateWrapper<T> setSql(boolean condition, String sql) {
+        // 设置 SET 部分 SQL
+        // 例: setSql("name = '老李头'")
         if (condition && StringUtils.isNotBlank(sql)) {
             sqlSet.add(sql);
         }
@@ -100,6 +107,9 @@ public class UpdateWrapper<T> extends AbstractWrapper<T, String, UpdateWrapper<T
      * 返回一个支持 lambda 函数写法的 wrapper
      */
     public LambdaUpdateWrapper<T> lambda() {
+        // 获取 LambdaWrapper
+        //      在QueryWrapper中是获取LambdaQueryWrapper
+        //      在UpdateWrapper中是获取LambdaUpdateWrapper
         return new LambdaUpdateWrapper<>(getEntity(), getEntityClass(), sqlSet, paramNameSeq, paramNameValuePairs,
             expression, paramAlias, lastSql, sqlComment, sqlFirst);
     }

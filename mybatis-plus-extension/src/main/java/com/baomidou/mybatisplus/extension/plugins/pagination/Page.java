@@ -32,55 +32,48 @@ import java.util.function.Predicate;
  * @since 2018-06-09
  */
 public class Page<T> implements IPage<T> {
+    // 位于:  com.baomidou.mybatisplus.extension.plugins.pagination = extension模块下的plugins.pagintaion页面使用哦
 
     private static final long serialVersionUID = 8545996863226528798L;
 
-    /**
-     * 查询数据列表
-     */
+    // 以下四个数据都非常重要:
+
+    // 查询数据列表
     protected List<T> records = Collections.emptyList();
 
-    /**
-     * 总数
-     */
+    // 总数
     protected long total = 0;
-    /**
-     * 每页显示条数，默认 10
-     */
+
+    // 每页显示条数，默认 10
     protected long size = 10;
 
-    /**
-     * 当前页
-     */
+    // 当前页
     protected long current = 1;
 
-    /**
-     * 排序字段信息
-     */
+    // 排序字段信息
     @Setter
     protected List<OrderItem> orders = new ArrayList<>();
 
-    /**
-     * 自动优化 COUNT SQL
-     */
+    // 自动优化 COUNT SQL
     protected boolean optimizeCountSql = true;
-    /**
-     * 是否进行 count 查询
-     */
+
+    // 是否进行 count 查询
+    // ❗️❗️❗️ 建议不要修改为false,如果searchCount修改为false,就会导致PaginationInnerInterceptor失效的 -> 就不会去执行 select count(*) from ... 的操作
+    // 也会导致最终的 total 数量显示为 0
     protected boolean searchCount = true;
-    /**
-     * {@link #optimizeJoinOfCountSql()}
-     */
+
+    // optimizeJoinOfCountSql()
+    // com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor.isOptimizeJoin() 两个参数都为 true 才会进行sql处理
     @Setter
     protected boolean optimizeJoinOfCountSql = true;
-    /**
-     * countId
-     */
+
+    // countId -[老的分页插件不支持的]
+    // count slq 的 MappedStatement 的 id
     @Setter
     protected String countId;
-    /**
-     * countId
-     */
+
+    // 最大每页分页数限制,优先级高于分页插件内的 maxLimit
+    // 也就是size的最大值 -> 比如maxLimit=50,用户输入size=70 -> 最终会被优化为size=50,不能超过这里设置的最大的单页限制50条
     @Setter
     protected Long maxLimit;
 

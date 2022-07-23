@@ -83,6 +83,18 @@ import java.util.Map;
  * @since 2016-01-23
  */
 public interface BaseMapper<T> extends Mapper<T> {
+    // 位于: core模块的mapper包下
+    // BaseMapper接口
+
+    // 定义:
+    // 实现了基本 插入\根据id删除\更新\查询等CRUD操作哦
+
+    // 如何生效:
+    // BaseMapper中的方法需要生效就离不开 -> 以下几个类:
+    //      MybatisMapperAnnotationBuilder作为入口类,调用了DefaultSqlInjector#inspectInject(..)
+    //      DefaultSqlInjector负责决定注入哪些AbstractMethod,并以此调用AbstractMethod#inject(..)完成MappedStatement的注入
+    //      AbstractMethod的各个实现类对应各个BaseMapper的方法负责具体如何向Configuration中注入MappedStatement
+
 
     /**
      * 插入一条记录
@@ -112,6 +124,7 @@ public interface BaseMapper<T> extends Mapper<T> {
      * @param columnMap 表字段 map 对象
      */
     int deleteByMap(@Param(Constants.COLUMN_MAP) Map<String, Object> columnMap);
+    // here: 传入的参数名字为 ""cm" ->  能够用来作为筛选条件使用
 
     /**
      * 根据 entity 条件，删除记录
@@ -119,6 +132,7 @@ public interface BaseMapper<T> extends Mapper<T> {
      * @param queryWrapper 实体对象封装操作类（可以为 null,里面的 entity 用于生成 where 语句）
      */
     int delete(@Param(Constants.WRAPPER) Wrapper<T> queryWrapper);
+    // here: 传入参数的名字为 "ew"  -> 能够用来作为筛选条件使用
 
     /**
      * 删除（根据ID或实体 批量删除）
@@ -126,6 +140,7 @@ public interface BaseMapper<T> extends Mapper<T> {
      * @param idList 主键ID列表或实体列表(不能为 null 以及 empty)
      */
     int deleteBatchIds(@Param(Constants.COLLECTION) Collection<?> idList);
+    // here: 传入的参数的名字为: "coll"
 
     /**
      * 根据 ID 修改
@@ -133,6 +148,7 @@ public interface BaseMapper<T> extends Mapper<T> {
      * @param entity 实体对象
      */
     int updateById(@Param(Constants.ENTITY) T entity);
+    // 根据id修改 -> 修改的内容来源于entity
 
     /**
      * 根据 whereEntity 条件，更新记录
@@ -227,6 +243,7 @@ public interface BaseMapper<T> extends Mapper<T> {
      * @param queryWrapper 实体对象封装操作类（可以为 null）
      */
     <P extends IPage<T>> P selectPage(P page, @Param(Constants.WRAPPER) Wrapper<T> queryWrapper);
+    // Page需要实现IPage接口哦
 
     /**
      * 根据 Wrapper 条件，查询全部记录（并翻页）

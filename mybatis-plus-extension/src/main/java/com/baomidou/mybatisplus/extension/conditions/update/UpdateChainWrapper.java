@@ -31,6 +31,8 @@ import com.baomidou.mybatisplus.extension.conditions.AbstractChainWrapper;
 public class UpdateChainWrapper<T> extends AbstractChainWrapper<T, String, UpdateChainWrapper<T>, UpdateWrapper<T>>
     implements ChainUpdate<T>, Update<UpdateChainWrapper<T>, String> {
 
+    // 忽略~~ 实际上整个设计模式和 UpdateQueryWrapper 类似
+
     private final BaseMapper<T> baseMapper;
 
     public UpdateChainWrapper(BaseMapper<T> baseMapper) {
